@@ -72,11 +72,21 @@ class UIController {
             startPauseBtn.html('Start');
         });
 
-        // Try Me button
-        const tryMeBtn = createButton('Try Me');
+        // Try Me Settings 1 button
+        const tryMeBtn = createButton('Try Me Settings 1');
         tryMeBtn.parent(group);
         tryMeBtn.mousePressed(() => {
             this.setToTryMeSettings();
+            this.simulation.reset();
+            this.simulation.start();
+            startPauseBtn.html('Pause');
+        });
+        
+        // Try Me Settings 2 button
+        const tryMeBtn2 = createButton('Try Me Settings 2');
+        tryMeBtn2.parent(group);
+        tryMeBtn2.mousePressed(() => {
+            this.setToTryMeSettings2();
             this.simulation.reset();
             this.simulation.start();
             startPauseBtn.html('Pause');
@@ -362,7 +372,7 @@ class UIController {
     }
 
     /**
-     * Set settings to the "Try Me" configuration
+     * Set settings to the "Try Me Settings 1" configuration
      */
     setToTryMeSettings() {
         const tryMeSettings = {
@@ -394,6 +404,44 @@ class UIController {
                 control.slider.value(tryMeSettings[key]);
                 if (control.valueDisplay) {
                     control.valueDisplay.html(tryMeSettings[key]);
+                }
+            }
+        }
+    }
+    
+    /**
+     * Set settings to the "Try Me Settings 2" configuration
+     */
+    setToTryMeSettings2() {
+        const tryMeSettings2 = {
+            particleCount: 250,
+            initialMass: 5,
+            maxSpeed: 5,
+            dampeningCoefficient: 0.03,
+            thresholdDistance: 40,
+            attractionCoefficient: 0.54,
+            repulsionCoefficient: 0.22,
+            stickyForceCoefficient: 1.21,
+            repulsionDelay: 120,
+            delayIncrease: 30,
+            maxRepulsionDelay: 300,
+            minMass: 2,
+            maxMass: 20,
+            massGainRate: 0.001,
+            massLossRate: 0.1
+        };
+
+        // Update config with new settings
+        for (const [key, value] of Object.entries(tryMeSettings2)) {
+            this.config.updateSetting(key, value);
+        }
+
+        // Update UI sliders
+        for (const [key, control] of Object.entries(this.controls)) {
+            if (control.slider && tryMeSettings2[key] !== undefined) {
+                control.slider.value(tryMeSettings2[key]);
+                if (control.valueDisplay) {
+                    control.valueDisplay.html(tryMeSettings2[key]);
                 }
             }
         }
