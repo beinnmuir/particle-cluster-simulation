@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Build output
+dist/
+build/
+.next/
+
+# Framework-specific files
+.vercel/
+.netlify/
+.out/  # Used by some bundlers like Next.js
+.nuxt/  # For Nuxt.js projects
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# windsurf rules
+.windsurfrules
