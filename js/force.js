@@ -14,6 +14,12 @@ class ForceSystem {
         // Map to track the size of each cluster
         this.clusterSizes = new Map();
         
+        // Map to track cluster centers
+        this.clusterCenters = new Map();
+        
+        // Map to track cluster repulsion states
+        this.clusterRepulsionStates = new Map();
+        
         // Total number of distinct clusters
         this.distinctClusterCount = 0;
     }
@@ -24,52 +30,74 @@ class ForceSystem {
      * @param {object} config - Current simulation configuration
      */
     applyForces(particles, config) {
-        // Reset current clusters for this frame
+        // Reset tracking for this frame
         this.currentClusters.clear();
         this.particleClusterMap.clear();
         this.clusterSizes.clear();
+        this.clusterRepulsionStates.clear();
         this.distinctClusterCount = 0;
         
-        // First pass: reset cluster status and apply forces
+        // First pass: identify potential clusters based on proximity
         for (let i = 0; i < particles.length; i++) {
             // Ensure each particle has an ID for cluster tracking
             if (particles[i].id === undefined || particles[i].id === null) {
                 particles[i].id = i;
             }
             
-            // Reset cluster status at the beginning of each frame
-            if (typeof particles[i].setInCluster === 'function') {
-                particles[i].setInCluster(false);
-            } else {
-                // Fallback for compatibility
-                particles[i].inCluster = false;
-            }
+            // Don't reset cluster status here - we'll do it after force calculation
             
+            for (let j = i + 1; j < particles.length; j++) {
+                // Check if particles are close enough to be in a cluster
+                const distance = p5.Vector.dist(particles[i].position, particles[j].position);
+                if (distance < config.thresholdDistance * 0.8) {
+                    const clusterID = [particles[i].id, particles[j].id].sort().join('-');
+                    this.currentClusters.add(clusterID);
+                }
+            }
+        }
+        
+        // Identify distinct clusters before applying forces
+        this.identifyDistinctClusters(particles);
+        
+        // Propagate repulsion states before applying any forces
+        // This ensures all particles in a cluster know their repulsion state
+        // before force calculations begin
+        this.propagateRepulsionInClusters(particles);
+        
+        // Second pass: apply forces between all particles
+        // Now that repulsion states are propagated, forces will be applied consistently
+        for (let i = 0; i < particles.length; i++) {
             for (let j = i + 1; j < particles.length; j++) {
                 this.applyForceBetweenParticles(particles[i], particles[j], config);
             }
         }
         
-        // After all forces are applied, identify distinct clusters
-        this.identifyDistinctClusters(particles);
+        // IMPORTANT: Only update particle cluster states AFTER all forces have been applied
+        // This prevents resetting repulsion states during force calculation
+        for (let i = 0; i < particles.length; i++) {
+            const particleId = particles[i].id;
+            const clusterIndex = this.particleClusterMap.get(particleId);
+            const inCluster = clusterIndex !== undefined;
+            const clusterSize = inCluster ? this.clusterSizes.get(clusterIndex) || 0 : 0;
+            
+            // Now it's safe to update the particle's cluster status
+            if (typeof particles[i].setInCluster === 'function') {
+                particles[i].setInCluster(inCluster, clusterSize, config);
+            } else {
+                // Fallback for compatibility
+                particles[i].inCluster = inCluster;
+            }
+        }
         
-        // Propagate repulsion state across all particles in each cluster
-        this.propagateRepulsionInClusters(particles);
-        
-        // Second pass: detect new clusters and update cluster counts
-        // Find clusters that are new in this frame but weren't in the previous frame
+        // Update cluster counts for new clusters
         for (const clusterId of this.currentClusters) {
             if (!this.previousClusters.has(clusterId)) {
-                // This is a new cluster formation
                 const particleIds = clusterId.split('-').map(id => parseInt(id));
-                
-                // Increment cluster count for all particles in this new cluster
                 for (const id of particleIds) {
                     if (id >= 0 && id < particles.length) {
                         if (typeof particles[id].incrementClusterCount === 'function') {
                             particles[id].incrementClusterCount();
                         } else {
-                            // Fallback for compatibility
                             particles[id].clusterCount++;
                         }
                     }
@@ -77,7 +105,7 @@ class ForceSystem {
             }
         }
         
-        // Update previous clusters for next frame comparison
+        // Update previous clusters for next frame
         this.previousClusters = new Set(this.currentClusters);
     }
     
@@ -105,6 +133,13 @@ class ForceSystem {
         const p1ShouldRepulse = p1.shouldRepulse === true;
         const p2ShouldRepulse = p2.shouldRepulse === true;
         
+        // Get cluster information
+        const p1ClusterId = this.particleClusterMap.get(p1.id);
+        const p2ClusterId = this.particleClusterMap.get(p2.id);
+        const p1ClusterShouldRepulse = p1ClusterId !== undefined && this.clusterRepulsionStates.get(p1ClusterId);
+        const p2ClusterShouldRepulse = p2ClusterId !== undefined && this.clusterRepulsionStates.get(p2ClusterId);
+        const sameCluster = p1ClusterId !== undefined && p1ClusterId === p2ClusterId;
+        
         // Check if distance is greater than threshold (attraction) or less (repulsion)
         if (distance > config.thresholdDistance) {
             // Attractive force: F = k_a * (m1 * m2) / r^2
@@ -117,24 +152,50 @@ class ForceSystem {
                     (p1.mass * p2.mass) / Math.pow(distance, config.stickyForcePower);
                 forceMagnitude += stickyForceMagnitude;
             }
-        } else {
-            // Only apply repulsion if the repulsion delay has expired for either particle
-            if (p1ShouldRepulse || p2ShouldRepulse) {
-                // Repulsive force: F = -k_r * (m1 * m2) / r^2
-                forceMagnitude = -config.repulsionCoefficient * (p1.mass * p2.mass) / (distance * distance);
+        } else if (sameCluster && (p1ClusterShouldRepulse || p2ClusterShouldRepulse)) {
+            // For particles in the same cluster that should repulse,
+            // apply radial forces from cluster center
+            const clusterCenter = this.clusterCenters.get(p1ClusterId);
+            
+            if (clusterCenter) {
+                // Calculate radial directions from cluster center
+                const p1Direction = p5.Vector.sub(p1.position, clusterCenter).normalize();
+                const p2Direction = p5.Vector.sub(p2.position, clusterCenter).normalize();
+                
+                // Apply outward radial forces
+                const radialForceMagnitude = config.repulsionCoefficient * 0.5 * 
+                    (p1.mass * p2.mass) / (distance * distance);
+                
+                p1.applyForce(p5.Vector.mult(p1Direction, radialForceMagnitude));
+                p2.applyForce(p5.Vector.mult(p2Direction, radialForceMagnitude));
+                
+                // Also apply a small repulsive force between particles
+                forceMagnitude = -config.repulsionCoefficient * 0.3 * 
+                    (p1.mass * p2.mass) / (distance * distance);
             } else {
-                // Otherwise, apply a weak attractive force to maintain the cluster
-                forceMagnitude = config.stickyForceCoefficient * 0.5 * 
-                    (p1.mass * p2.mass) / Math.pow(distance, config.stickyForcePower);
+                // Fallback if no cluster center is available
+                forceMagnitude = -config.repulsionCoefficient * 
+                    (p1.mass * p2.mass) / (distance * distance);
             }
+        } else if (!sameCluster && (p1ClusterShouldRepulse || p2ClusterShouldRepulse)) {
+            // Repulsive force between different clusters
+            forceMagnitude = -config.repulsionCoefficient * 
+                (p1.mass * p2.mass) / (distance * distance);
+        } else {
+            // Otherwise, apply a weak attractive force to maintain the cluster
+            forceMagnitude = config.stickyForceCoefficient * 0.5 * 
+                (p1.mass * p2.mass) / Math.pow(distance, config.stickyForcePower);
         }
         
-        // Scale the force vector by the calculated magnitude
+        // Scale the force vector by the calculated magnitude (for non-radial forces)
         force.mult(forceMagnitude);
         
         // Apply the force to both particles (equal and opposite)
-        p1.applyForce(force);
-        p2.applyForce(p5.Vector.mult(force, -1));
+        // Skip if we already applied radial forces
+        if (!(sameCluster && (p1ClusterShouldRepulse || p2ClusterShouldRepulse) && this.clusterCenters.get(p1ClusterId))) {
+            p1.applyForce(force);
+            p2.applyForce(p5.Vector.mult(force, -1));
+        }
         
         // Check if particles are close enough to be considered in a cluster
         if (distance < config.thresholdDistance * 0.8) {
@@ -230,11 +291,31 @@ class ForceSystem {
         
         // Update cluster information
         this.distinctClusterCount = realClusters.length;
+        this.clusterCenters.clear(); // Reset cluster centers
         
         // Map particles to their cluster index and update cluster sizes
         realClusters.forEach((cluster, index) => {
             const clusterSize = cluster.length;
             this.clusterSizes.set(index, clusterSize);
+            
+            // Calculate cluster center
+            let centerX = 0;
+            let centerY = 0;
+            let validParticles = 0;
+            
+            for (const particleId of cluster) {
+                if (particleId >= 0 && particleId < particles.length) {
+                    centerX += particles[particleId].position.x;
+                    centerY += particles[particleId].position.y;
+                    validParticles++;
+                }
+            }
+            
+            if (validParticles > 0) {
+                centerX /= validParticles;
+                centerY /= validParticles;
+                this.clusterCenters.set(index, createVector(centerX, centerY));
+            }
             
             // Update each particle with its cluster info
             cluster.forEach(particleId => {
@@ -274,6 +355,15 @@ class ForceSystem {
         const clusterIndex = this.particleClusterMap.get(particleId);
         return this.clusterSizes.get(clusterIndex) || 0;
     }
+    
+    /**
+     * Get the center position of a cluster
+     * @param {number} clusterId - ID of the cluster
+     * @returns {p5.Vector|null} - Center position of the cluster, or null if not found
+     */
+    getClusterCenter(clusterId) {
+        return this.clusterCenters.get(clusterId) || null;
+    }
 
     /**
      * Propagate repulsion state to all particles in the same cluster
@@ -293,7 +383,7 @@ class ForceSystem {
         }
         
         // For each cluster, check if any particle has shouldRepulse = true
-        for (const particleIds of clusterParticles.values()) {
+        for (const [clusterIndex, particleIds] of clusterParticles.entries()) {
             let anyParticleShouldRepulse = false;
             
             // Check if any particle in the cluster should repulse
@@ -303,6 +393,9 @@ class ForceSystem {
                     break;
                 }
             }
+            
+            // Store the cluster's repulsion state
+            this.clusterRepulsionStates.set(clusterIndex, anyParticleShouldRepulse);
             
             // If any particle should repulse, make all particles in the cluster repulse
             if (anyParticleShouldRepulse) {
