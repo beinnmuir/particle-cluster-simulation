@@ -196,6 +196,53 @@ To ensure entire clusters expand outward during repulsion:
 2. Implemented fixed pixel sizing for glow
 3. Enhanced color mapping for cluster sizes to scale with particle count
 
+### 5.4 Repulsion Mechanism Improvements (March 2025)
+
+Fixed an issue where repulsive forces were only being applied to two particles in a cluster, instead of propagating to all particles. The key changes were:
+
+1. **Force Calculation Timing**: Modified the `applyForces` method in `ForceSystem` class to delay cluster status updates until after all forces have been applied
+   ```javascript
+   // Previous approach (problematic):
+   // Reset cluster status at the beginning of force calculation
+   if (typeof particles[i].setInCluster === 'function') {
+       particles[i].setInCluster(false);
+   }
+   
+   // New approach:
+   // First pass: Calculate and apply all forces without resetting cluster states
+   // Second pass: Update cluster states after all forces have been applied
+   ```
+
+2. **Particle State Management**: Enhanced the `setInCluster` method in `Particle` class to preserve repulsion state when a particle remains in a cluster
+   ```javascript
+   // Added state tracking variables
+   this.wasInCluster = false;
+   this.wasRepulsing = false;
+   
+   // Modified setInCluster to preserve repulsion state
+   setInCluster(status) {
+       // Store previous state before making changes
+       this.wasInCluster = this.inCluster;
+       this.wasRepulsing = this.shouldRepulse;
+       
+       // Only reset repulsion state when first joining a cluster
+       if (status && !this.inCluster) {
+           this.inCluster = true;
+           this.shouldRepulse = false;
+           this.repulsionTimer = 0;
+       } else if (status && this.inCluster) {
+           // Preserve repulsion state when already in a cluster
+           this.inCluster = true;
+       } else {
+           this.inCluster = false;
+       }
+   }
+   ```
+
+3. **Repulsion State Preservation**: Ensured that `shouldRepulse` is not automatically reset when a particle remains in a cluster, allowing repulsion to propagate through the entire cluster consistently
+
+These changes ensure that when particles in a cluster should repulse, the repulsion is applied uniformly to all particles in that cluster, not just a pair of particles.
+
 ## 6. Current Issues and Challenges
 
 ### 6.1 Performance Considerations
