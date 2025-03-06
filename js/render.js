@@ -67,29 +67,7 @@ class Renderer {
             fill(hue, saturation, brightness, 30);
             circle(particle.position.x, particle.position.y, particle.mass * 3);
             
-            // Draw repulsion timer indicator
-            if (particle.repulsionTimer > 0 && this.config.current.repulsionDelay > 0) {
-                // Calculate progress as a percentage
-                const progress = particle.repulsionTimer / this.config.current.repulsionDelay;
-                
-                // Draw arc showing timer progress
-                noFill();
-                const arcColor = particle.shouldRepulse ? color(255, 0, 0) : color(0, 255, 0);
-                stroke(arcColor);
-                strokeWeight(2);
-                const arcRadius = particle.mass * 1.5;
-                arc(
-                    particle.position.x,
-                    particle.position.y,
-                    arcRadius * 2,
-                    arcRadius * 2,
-                    0,
-                    TWO_PI * progress
-                );
-            }
-            
             // Draw the main particle with a brighter color
-            noStroke();
             fill(hue, saturation, brightness);
         }
         
