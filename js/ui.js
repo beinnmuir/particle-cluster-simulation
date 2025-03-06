@@ -24,6 +24,7 @@ class UIController {
         this.createSimulationControls(controlsContainer);
         this.createParticleControls(controlsContainer);
         this.createForceControls(controlsContainer);
+        this.createRepulsionDelayControls(controlsContainer);
         this.createMassControls(controlsContainer);
         this.createStatsDisplay(controlsContainer);
     }
@@ -179,6 +180,63 @@ class UIController {
             0.01,
             (value) => {
                 this.config.updateSetting('stickyForceCoefficient', value);
+            }
+        );
+    }
+    
+    /**
+     * Create mass evolution control sliders
+     * @param {p5.Element} container - Parent container
+     */
+    /**
+     * Create repulsion delay control sliders
+     * @param {p5.Element} container - Parent container
+     */
+    createRepulsionDelayControls(container) {
+        const group = createDiv();
+        group.class('control-group');
+        group.parent(container);
+        
+        // Title
+        const title = createElement('h3', 'Repulsion Delay');
+        title.parent(group);
+        
+        // Repulsion delay slider
+        this.createSlider(
+            group,
+            'repulsionDelay',
+            'Repulsion Delay (frames)',
+            0, 300, 
+            this.config.current.repulsionDelay,
+            10,
+            (value) => {
+                this.config.updateSetting('repulsionDelay', value);
+            }
+        );
+        
+        // Repulsion delay increase slider
+        this.createSlider(
+            group,
+            'repulsionDelayIncrease',
+            'Delay Increase on Join',
+            0, 100, 
+            this.config.current.repulsionDelayIncrease,
+            5,
+            (value) => {
+                this.config.updateSetting('repulsionDelayIncrease', value);
+            }
+        );
+        
+        // Max repulsion delay slider
+        this.createSlider(
+            group,
+            'maxRepulsionDelay',
+            'Max Repulsion Delay',
+            60, 600, 
+            this.config.current.maxRepulsionDelay,
+            30,
+            (value) => {
+                this.config.updateSetting('maxRepulsionDelay', value);
             }
         );
     }

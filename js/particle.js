@@ -22,6 +22,11 @@ class Particle {
         this.clusterTime = 0;
         this.isolationTime = 0;
         
+        // Repulsion delay tracking
+        this.repulsionTimer = 0;
+        this.shouldRepulse = false;
+        this.lastClusterSize = 0;
+        
         // Unique ID for cluster tracking (will be set by ForceSystem)
         this.id = null;
         
@@ -90,6 +95,14 @@ class Particle {
             this.clusterTime++;
             this.isolationTime = 0;
             
+            // Update repulsion timer and check if it's time to repulse
+            if (this.repulsionTimer < config.repulsionDelay) {
+                this.repulsionTimer++;
+                this.shouldRepulse = false;
+            } else {
+                this.shouldRepulse = true;
+            }
+            
             // Increase mass when in cluster
             if (this.mass < config.maxMass) {
                 this.mass += config.massGainRate;
@@ -97,6 +110,8 @@ class Particle {
         } else {
             this.isolationTime++;
             this.clusterTime = 0;
+            this.repulsionTimer = 0;
+            this.shouldRepulse = false;
             
             // Decrease mass when isolated
             if (this.mass > config.minMass) {
@@ -108,9 +123,37 @@ class Particle {
     /**
      * Set the particle's cluster status
      * @param {boolean} status - Whether the particle is in a cluster
+     * @param {number} clusterSize - The size of the cluster (optional)
+     * @param {object} config - Current simulation configuration (optional)
      */
-    setInCluster(status) {
-        this.inCluster = status;
+    setInCluster(status, clusterSize = 0, config = null) {
+        // If joining a cluster
+        if (status && !this.inCluster) {
+            this.inCluster = true;
+            this.shouldRepulse = false;
+            this.repulsionTimer = 0;
+        } 
+        // If already in a cluster
+        else if (status && this.inCluster) {
+            // If cluster size increased, extend the repulsion delay
+            if (config && clusterSize > this.lastClusterSize) {
+                this.repulsionTimer = Math.min(
+                    this.repulsionTimer + config.repulsionDelayIncrease,
+                    config.maxRepulsionDelay
+                );
+            }
+        }
+        // If leaving a cluster
+        else if (!status && this.inCluster) {
+            this.inCluster = false;
+            this.shouldRepulse = false;
+            this.repulsionTimer = 0;
+        }
+        
+        // Update last known cluster size
+        if (clusterSize > 0) {
+            this.lastClusterSize = clusterSize;
+        }
     }
     
     /**
