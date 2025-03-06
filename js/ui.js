@@ -116,6 +116,19 @@ class UIController {
                 this.config.updateSetting('maxSpeed', value);
             }
         );
+        
+        // Dampening coefficient slider
+        this.createSlider(
+            group,
+            'dampeningCoefficient',
+            'Dampening (Friction)',
+            0, 0.1, 
+            this.config.current.dampeningCoefficient,
+            0.001,
+            (value) => {
+                this.config.updateSetting('dampeningCoefficient', value);
+            }
+        );
     }
     
     /**

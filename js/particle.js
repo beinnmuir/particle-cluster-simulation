@@ -49,6 +49,16 @@ class Particle {
      * @param {object} config - Current simulation configuration
      */
     update(config) {
+        // Apply dampening force (fluid resistance/friction)
+        if (config.dampeningCoefficient > 0) {
+            // Create a dampening force proportional to velocity but in opposite direction
+            // F_dampening = -c * v
+            // where c is the dampening coefficient and v is the velocity
+            const dampeningForce = this.velocity.copy();
+            dampeningForce.mult(-config.dampeningCoefficient);
+            this.applyForce(dampeningForce);
+        }
+        
         // Update velocity based on acceleration
         this.velocity.add(this.acceleration);
         

@@ -34,7 +34,8 @@ class Config {
             
             // Simulation settings
             timeStep: 1,
-            maxSpeed: 5
+            maxSpeed: 5,
+            dampeningCoefficient: 0.03 // Friction/dampening force (0 = no dampening, 1 = immediate stop)
         };
         
         // Current settings (will be modified by UI)
