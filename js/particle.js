@@ -140,14 +140,17 @@ class Particle {
      * @param {object} config - Current simulation configuration (optional)
      */
     setInCluster(status, clusterSize = 0, config = null) {
-        // If joining a cluster
-        if (status && !this.inCluster) {
+        const wasInCluster = this.inCluster;
+        const wasRepulsing = this.shouldRepulse;
+        
+        // If joining a cluster for the first time
+        if (status && !wasInCluster) {
             this.inCluster = true;
             this.shouldRepulse = false;
             this.repulsionTimer = 0;
         } 
-        // If already in a cluster
-        else if (status && this.inCluster) {
+        // If already in a cluster, preserve repulsion state
+        else if (status && wasInCluster) {
             // If cluster size increased, extend the repulsion delay
             if (config && clusterSize > this.lastClusterSize) {
                 this.repulsionTimer = Math.min(
@@ -155,9 +158,13 @@ class Particle {
                     config.maxRepulsionDelay
                 );
             }
+            
+            // IMPORTANT: Preserve the repulsion state
+            // This allows repulsion to propagate through the entire cluster
+            this.shouldRepulse = wasRepulsing;
         }
         // If leaving a cluster
-        else if (!status && this.inCluster) {
+        else if (!status && wasInCluster) {
             this.inCluster = false;
             this.shouldRepulse = false;
             this.repulsionTimer = 0;
