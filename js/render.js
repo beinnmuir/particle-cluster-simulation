@@ -83,22 +83,22 @@ class Renderer {
                 ringHue = map(Math.min(particle.clusterSize, maxClusterSize), mediumThreshold, maxClusterSize, 60, 0);
             }
             
+            // Calculate base particle size
+            const baseSize = particle.mass * sizeMultiplier;
+            
+            // Fixed pixel size for glow
+            const glowPixels = 4; // How many pixels the glow extends outward
+            
             // Draw outer glow effect
             noStroke();
             fill(ringHue, 85, 95, 30);
-            circle(particle.position.x, particle.position.y, particle.mass * (sizeMultiplier + 1));
-            
-            // Draw outer ring
-            noFill();
-            stroke(ringHue, 85, 95);
-            strokeWeight(2);
-            circle(particle.position.x, particle.position.y, particle.mass * sizeMultiplier);
+            circle(particle.position.x, particle.position.y, baseSize + (glowPixels * 2)); // *2 because we add pixels to both sides
         }
         
         // Draw main particle circle
         noStroke();
         fill(mainHue, 80, 90);
-        circle(particle.position.x, particle.position.y, particle.mass * (sizeMultiplier - 0.2));
+        circle(particle.position.x, particle.position.y, particle.mass * sizeMultiplier);
         
         // Reset color mode to default
         colorMode(RGB, 255, 255, 255);
