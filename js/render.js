@@ -40,79 +40,57 @@ class Renderer {
      * @param {Particle} particle - The particle to render
      */
     renderParticle(particle) {
-        // Use cluster size to determine color if in a cluster
-        let hue, saturation, brightness;
-        
         // Set color mode to HSB for more intuitive color mapping
         colorMode(HSB, 360, 100, 100);
         
-        if (particle.inCluster && particle.clusterSize > 1) {
-            // Map cluster size to hue: larger clusters = warmer colors
-            // Small clusters (2-5): blue to cyan (240-180)
-            // Medium clusters (6-15): cyan to green to yellow (180-60)
-            // Large clusters (16+): yellow to red to magenta (60-300)
-            const maxClusterSize = 30;
-            
-            if (particle.clusterSize <= 5) {
-                hue = map(particle.clusterSize, 1, 5, 240, 180);
-                saturation = 80;
-                brightness = 90;
-            } else if (particle.clusterSize <= 15) {
-                hue = map(particle.clusterSize, 6, 15, 180, 60);
-                saturation = 85;
-                brightness = 95;
-            } else {
-                hue = map(Math.min(particle.clusterSize, maxClusterSize), 16, maxClusterSize, 60, 300);
-                saturation = 90;
-                brightness = 100;
-            }
-            
-            // Draw a larger, semi-transparent circle for glow effect
-            // Glow size scales with cluster size
-            const glowSize = map(particle.clusterSize, 1, maxClusterSize, 3, 5);
-            noStroke();
-            fill(hue, saturation, brightness, 30);
-            circle(particle.position.x, particle.position.y, particle.mass * glowSize);
-            
-            // Add a second glow layer for larger clusters
-            if (particle.clusterSize > 10) {
-                fill(hue, saturation, brightness, 15);
-                circle(particle.position.x, particle.position.y, particle.mass * (glowSize + 1));
-            }
-            
-            // Draw the main particle with a brighter color
-            fill(hue, saturation, brightness);
-        } else {
-            // For isolated particles, use cluster count for color
-            const maxClusterCount = 100;
-            
-            if (particle.clusterCount <= maxClusterCount) {
-                // Map 0-100 to 240-0 (blue to red)
-                hue = map(particle.clusterCount, 0, maxClusterCount, 240, 0);
-            } else {
-                // For counts > 100, cycle through red to magenta (0-300)
-                hue = map(particle.clusterCount % maxClusterCount, 0, maxClusterCount, 0, 300);
-            }
-            
-            saturation = 80;
-            brightness = 90;
-            
-            fill(hue, saturation, brightness);
-        }
-        
-        // Draw particle outline
-        stroke(0, 0, 0, 100);
-        strokeWeight(1);
-        
-        // Draw the main particle circle with size based on mass
-        // For particles in clusters, slightly increase the size based on cluster size
+        // Calculate size multiplier based on mass
         let sizeMultiplier = 2;
         if (particle.inCluster && particle.clusterSize > 1) {
             // Add a small bonus to size based on cluster size (max +0.5)
             sizeMultiplier += map(Math.min(particle.clusterSize, 20), 1, 20, 0, 0.5);
         }
         
-        circle(particle.position.x, particle.position.y, particle.mass * sizeMultiplier);
+        // Calculate colors for main fill (based on cluster count history)
+        const maxClusterCount = 100;
+        let mainHue;
+        if (particle.clusterCount <= maxClusterCount) {
+            // Map 0-100 to 240-0 (blue to red)
+            mainHue = map(particle.clusterCount, 0, maxClusterCount, 240, 0);
+        } else {
+            // For counts > 100, cycle through red to magenta (0-300)
+            mainHue = map(particle.clusterCount % maxClusterCount, 0, maxClusterCount, 0, 300);
+        }
+        
+        // Draw outer ring if particle is in a cluster
+        if (particle.inCluster && particle.clusterSize > 1) {
+            // Calculate ring color based on current cluster size
+            let ringHue;
+            const maxClusterSize = 30;
+            
+            if (particle.clusterSize <= 5) {
+                ringHue = map(particle.clusterSize, 1, 5, 240, 180);
+            } else if (particle.clusterSize <= 15) {
+                ringHue = map(particle.clusterSize, 6, 15, 180, 60);
+            } else {
+                ringHue = map(Math.min(particle.clusterSize, maxClusterSize), 16, maxClusterSize, 60, 300);
+            }
+            
+            // Draw outer glow effect
+            noStroke();
+            fill(ringHue, 85, 95, 30);
+            circle(particle.position.x, particle.position.y, particle.mass * (sizeMultiplier + 1));
+            
+            // Draw outer ring
+            noFill();
+            stroke(ringHue, 85, 95);
+            strokeWeight(2);
+            circle(particle.position.x, particle.position.y, particle.mass * sizeMultiplier);
+        }
+        
+        // Draw main particle circle
+        noStroke();
+        fill(mainHue, 80, 90);
+        circle(particle.position.x, particle.position.y, particle.mass * (sizeMultiplier - 0.2));
         
         // Reset color mode to default
         colorMode(RGB, 255, 255, 255);
