@@ -38,8 +38,21 @@ class Renderer {
      */
     renderParticle(particle) {
         // Map cluster count to color (HSB color mode)
-        // More clusters = warmer colors
-        const hue = map(particle.clusterCount, 0, 20, 240, 0);
+        // Use a wider range and cycle through the color spectrum
+        // Start with blue (240), through green, yellow, red, and then cycle to magenta
+        const maxClusterCount = 100; // Increased from 20 to 100
+        
+        // Calculate hue: blue (240) -> cyan -> green -> yellow -> red (0) -> magenta
+        // This creates a full 360° color cycle for better visual distinction
+        let hue;
+        if (particle.clusterCount <= maxClusterCount) {
+            // Map 0-100 to 240-0 (blue to red)
+            hue = map(particle.clusterCount, 0, maxClusterCount, 240, 0);
+        } else {
+            // For counts > 100, cycle through red to magenta (0-300)
+            hue = map(particle.clusterCount % maxClusterCount, 0, maxClusterCount, 0, 300);
+        }
+        
         const saturation = 80;
         const brightness = 90;
         

@@ -22,6 +22,9 @@ class Particle {
         this.clusterTime = 0;
         this.isolationTime = 0;
         
+        // Unique ID for cluster tracking (will be set by ForceSystem)
+        this.id = null;
+        
         // Future: affinity/attribute property
         this.affinity = null; // Will be implemented in future stages
     }
@@ -103,20 +106,19 @@ class Particle {
     }
     
     /**
-     * Mark particle as part of a cluster
+     * Set the particle's cluster status
+     * @param {boolean} status - Whether the particle is in a cluster
      */
-    joinCluster() {
-        if (!this.inCluster) {
-            this.inCluster = true;
-            this.clusterCount++;
-        }
+    setInCluster(status) {
+        this.inCluster = status;
     }
     
     /**
-     * Mark particle as no longer part of a cluster
+     * Increment the cluster count when a new cluster is formed
+     * This is called by the ForceSystem when a new cluster is detected
      */
-    leaveCluster() {
-        this.inCluster = false;
+    incrementClusterCount() {
+        this.clusterCount++;
     }
     
     /**
@@ -124,8 +126,21 @@ class Particle {
      */
     display() {
         // Map cluster count to color (HSB color mode)
-        // More clusters = warmer colors
-        const hue = map(this.clusterCount, 0, 20, 240, 0);
+        // Use a wider range and cycle through the color spectrum
+        // Start with blue (240), through green, yellow, red, and then cycle to magenta
+        const maxClusterCount = 100; // Increased from 20 to 100
+        
+        // Calculate hue: blue (240) -> cyan -> green -> yellow -> red (0) -> magenta
+        // This creates a full 360° color cycle for better visual distinction
+        let hue;
+        if (this.clusterCount <= maxClusterCount) {
+            // Map 0-100 to 240-0 (blue to red)
+            hue = map(this.clusterCount, 0, maxClusterCount, 240, 0);
+        } else {
+            // For counts > 100, cycle through red to magenta (0-300)
+            hue = map(this.clusterCount % maxClusterCount, 0, maxClusterCount, 0, 300);
+        }
+        
         const saturation = 80;
         const brightness = 90;
         

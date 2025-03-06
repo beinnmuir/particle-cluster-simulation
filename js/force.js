@@ -3,21 +3,52 @@
  * Handles attraction, repulsion, and sticky forces
  */
 class ForceSystem {
+    constructor() {
+        // Track clusters from previous frame to detect new cluster formations
+        this.previousClusters = new Set();
+        this.currentClusters = new Set();
+    }
+    
     /**
      * Calculate and apply forces between all particles
      * @param {Array} particles - Array of all particles in the simulation
      * @param {object} config - Current simulation configuration
      */
     applyForces(particles, config) {
-        // Loop through all pairs of particles
+        // Reset current clusters for this frame
+        this.currentClusters.clear();
+        
+        // First pass: reset cluster status and apply forces
         for (let i = 0; i < particles.length; i++) {
+            // Ensure each particle has an ID for cluster tracking
+            if (particles[i].id === undefined) {
+                particles[i].id = i;
+            }
+            
             // Reset cluster status at the beginning of each frame
-            particles[i].leaveCluster();
+            particles[i].setInCluster(false);
             
             for (let j = i + 1; j < particles.length; j++) {
                 this.applyForceBetweenParticles(particles[i], particles[j], config);
             }
         }
+        
+        // Second pass: detect new clusters and update cluster counts
+        // Find clusters that are new in this frame but weren't in the previous frame
+        for (const clusterId of this.currentClusters) {
+            if (!this.previousClusters.has(clusterId)) {
+                // This is a new cluster formation
+                const particleIds = clusterId.split('-').map(id => parseInt(id));
+                
+                // Increment cluster count for all particles in this new cluster
+                for (const id of particleIds) {
+                    particles[id].incrementClusterCount();
+                }
+            }
+        }
+        
+        // Update previous clusters for next frame comparison
+        this.previousClusters = new Set(this.currentClusters);
     }
     
     /**
@@ -66,8 +97,14 @@ class ForceSystem {
         
         // Check if particles are close enough to be considered in a cluster
         if (distance < config.thresholdDistance * 0.8) {
-            p1.joinCluster();
-            p2.joinCluster();
+            // Mark particles as being in a cluster
+            p1.setInCluster(true);
+            p2.setInCluster(true);
+            
+            // Create a unique cluster identifier using particle indices
+            // Sort the indices to ensure the same cluster has the same ID regardless of order
+            const clusterID = [p1.id, p2.id].sort().join('-');
+            this.currentClusters.add(clusterID);
         }
     }
 }
