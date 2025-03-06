@@ -21,14 +21,14 @@ class Renderer {
         // Clear background
         background(240);
         
-        // Draw connections between particles first (if debug is enabled)
-        if (this.showForceVectors) {
-            this.renderForceVectors();
-        }
-        
-        // Draw particles on top of connections
+        // Draw particles first
         for (let particle of this.simulation.particles) {
             this.renderParticle(particle);
+        }
+        
+        // Draw connections between particles on top (if debug is enabled)
+        if (this.showForceVectors) {
+            this.renderForceVectors();
         }
         
         // Draw cluster statistics
