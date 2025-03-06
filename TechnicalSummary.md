@@ -243,6 +243,74 @@ Fixed an issue where repulsive forces were only being applied to two particles i
 
 These changes ensure that when particles in a cluster should repulse, the repulsion is applied uniformly to all particles in that cluster, not just a pair of particles.
 
+### 5.5 Visualization and UI Improvements (March 2025)
+
+Enhanced the visualization and user interface to improve user experience and visual clarity:
+
+1. **Constant Line Thickness**: Modified the `renderForceVectors` method in the `Renderer` class to use a constant line thickness for connections between particles
+   ```javascript
+   // Previous approach (variable thickness):
+   const weight = map(clusterSize, 2, 20, 0.5, 1.5);
+   
+   // New approach (constant thickness):
+   const weight = 1; // Set a constant line thickness
+   ```
+
+2. **Reduced Color Brightness**: Adjusted HSV values for particle fill and glow effects to reduce brightness and improve visual clarity
+   ```javascript
+   // Previous approach (brighter colors):
+   fill(mainHue, 80, 90);
+   fill(ringHue, 85, 95, 30);
+   
+   // New approach (softer colors):
+   fill(mainHue, 60, 70);
+   fill(ringHue, 70, 80, 30);
+   ```
+
+3. **Improved Rendering Order**: Modified the rendering order to ensure connecting lines are visible on top of particles
+   ```javascript
+   // Previous approach (connections hidden behind particles):
+   // Draw connections first, then particles
+   
+   // New approach (connections visible on top):
+   // Draw particles first, then connections
+   ```
+
+4. **One-Click Configurations**: Added "Default Settings" and "Try Me" buttons to the UI for quick configuration
+   ```javascript
+   // Default Settings button
+   const defaultBtn = createButton('Default Settings');
+   defaultBtn.mousePressed(() => {
+       this.resetToDefaultSettings();
+       this.simulation.reset();
+   });
+   
+   // Try Me button
+   const tryMeBtn = createButton('Try Me');
+   tryMeBtn.mousePressed(() => {
+       this.setToTryMeSettings();
+       this.simulation.reset();
+       this.simulation.start();
+   });
+   ```
+
+5. **Preset Configuration**: Implemented a "Try Me" configuration with optimized parameters for interesting clustering behavior
+   ```javascript
+   const tryMeSettings = {
+       particleCount: 400,
+       initialMass: 5,
+       maxSpeed: 5,
+       dampeningCoefficient: 0.03,
+       thresholdDistance: 60,
+       attractionCoefficient: 0.03,
+       repulsionCoefficient: 1,
+       stickyForceCoefficient: 1.21,
+       // Additional parameters...
+   };
+   ```
+
+These improvements enhance the visual experience and make the simulation more accessible to users by providing easy access to optimized configurations.
+
 ## 6. Current Issues and Challenges
 
 ### 6.1 Performance Considerations
