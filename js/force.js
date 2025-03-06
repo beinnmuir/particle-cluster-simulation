@@ -21,12 +21,17 @@ class ForceSystem {
         // First pass: reset cluster status and apply forces
         for (let i = 0; i < particles.length; i++) {
             // Ensure each particle has an ID for cluster tracking
-            if (particles[i].id === undefined) {
+            if (particles[i].id === undefined || particles[i].id === null) {
                 particles[i].id = i;
             }
             
             // Reset cluster status at the beginning of each frame
-            particles[i].setInCluster(false);
+            if (typeof particles[i].setInCluster === 'function') {
+                particles[i].setInCluster(false);
+            } else {
+                // Fallback for compatibility
+                particles[i].inCluster = false;
+            }
             
             for (let j = i + 1; j < particles.length; j++) {
                 this.applyForceBetweenParticles(particles[i], particles[j], config);
@@ -42,7 +47,14 @@ class ForceSystem {
                 
                 // Increment cluster count for all particles in this new cluster
                 for (const id of particleIds) {
-                    particles[id].incrementClusterCount();
+                    if (id >= 0 && id < particles.length) {
+                        if (typeof particles[id].incrementClusterCount === 'function') {
+                            particles[id].incrementClusterCount();
+                        } else {
+                            // Fallback for compatibility
+                            particles[id].clusterCount++;
+                        }
+                    }
                 }
             }
         }
@@ -98,8 +110,19 @@ class ForceSystem {
         // Check if particles are close enough to be considered in a cluster
         if (distance < config.thresholdDistance * 0.8) {
             // Mark particles as being in a cluster
-            p1.setInCluster(true);
-            p2.setInCluster(true);
+            if (typeof p1.setInCluster === 'function') {
+                p1.setInCluster(true);
+            } else {
+                // Fallback for compatibility
+                p1.inCluster = true;
+            }
+            
+            if (typeof p2.setInCluster === 'function') {
+                p2.setInCluster(true);
+            } else {
+                // Fallback for compatibility
+                p2.inCluster = true;
+            }
             
             // Create a unique cluster identifier using particle indices
             // Sort the indices to ensure the same cluster has the same ID regardless of order
