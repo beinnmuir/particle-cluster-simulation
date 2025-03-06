@@ -135,7 +135,7 @@ class Renderer {
                             // Color and thickness based on cluster size
                             const clusterSize = p1.clusterSize;
                             const alpha = map(clusterSize, 2, 20, 80, 150);
-                            const weight = map(clusterSize, 2, 20, 0.5, 1.5);
+                            const weight = 1; // Set a constant line thickness
                             
                             // Use HSB color mode for more intuitive color mapping
                             colorMode(HSB, 360, 100, 100);
