@@ -53,6 +53,9 @@ class ForceSystem {
         // After all forces are applied, identify distinct clusters
         this.identifyDistinctClusters(particles);
         
+        // Propagate repulsion state across all particles in each cluster
+        this.propagateRepulsionInClusters(particles);
+        
         // Second pass: detect new clusters and update cluster counts
         // Find clusters that are new in this frame but weren't in the previous frame
         for (const clusterId of this.currentClusters) {
@@ -270,5 +273,45 @@ class ForceSystem {
         
         const clusterIndex = this.particleClusterMap.get(particleId);
         return this.clusterSizes.get(clusterIndex) || 0;
+    }
+
+    /**
+     * Propagate repulsion state to all particles in the same cluster
+     * If any particle in a cluster has shouldRepulse=true, set shouldRepulse=true for all particles in that cluster
+     * @param {Array} particles - Array of all particles in the simulation
+     */
+    propagateRepulsionInClusters(particles) {
+        // Group particles by cluster
+        const clusterParticles = new Map(); // Maps cluster index to array of particle IDs
+        
+        // Build the map of cluster indices to particle IDs
+        for (const [particleId, clusterIndex] of this.particleClusterMap.entries()) {
+            if (!clusterParticles.has(clusterIndex)) {
+                clusterParticles.set(clusterIndex, []);
+            }
+            clusterParticles.get(clusterIndex).push(particleId);
+        }
+        
+        // For each cluster, check if any particle has shouldRepulse = true
+        for (const particleIds of clusterParticles.values()) {
+            let anyParticleShouldRepulse = false;
+            
+            // Check if any particle in the cluster should repulse
+            for (const id of particleIds) {
+                if (id >= 0 && id < particles.length && particles[id].shouldRepulse === true) {
+                    anyParticleShouldRepulse = true;
+                    break;
+                }
+            }
+            
+            // If any particle should repulse, make all particles in the cluster repulse
+            if (anyParticleShouldRepulse) {
+                for (const id of particleIds) {
+                    if (id >= 0 && id < particles.length) {
+                        particles[id].shouldRepulse = true;
+                    }
+                }
+            }
+        }
     }
 }
