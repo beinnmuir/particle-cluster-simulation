@@ -91,13 +91,13 @@ class Renderer {
             
             // Draw outer glow effect
             noStroke();
-            fill(ringHue, 85, 95, 30);
+            fill(ringHue, 60, 70, 30);
             circle(particle.position.x, particle.position.y, baseSize + (glowPixels * 2)); // *2 because we add pixels to both sides
         }
         
         // Draw main particle circle
         noStroke();
-        fill(mainHue, 80, 90);
+        fill(mainHue, 60, 70);
         circle(particle.position.x, particle.position.y, particle.mass * sizeMultiplier);
         
         // Reset color mode to default
