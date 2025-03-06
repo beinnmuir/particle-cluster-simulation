@@ -22,7 +22,11 @@ function setup() {
     
     // Initialize simulation components
     simulationManager = new SimulationManager(config);
+    
+    // Initialize renderer with access to the force system for cluster visualization
     renderer = new Renderer(simulationManager, config);
+    
+    // Initialize UI controller
     uiController = new UIController(simulationManager, config);
     
     // Initialize simulation and UI
@@ -31,6 +35,9 @@ function setup() {
     
     // Set framerate
     frameRate(60);
+    
+    // Start with debug visualization on to show cluster connections
+    renderer.toggleForceVectors();
 }
 
 /**
@@ -38,13 +45,13 @@ function setup() {
  */
 function draw() {
     // Update simulation if running
-    simulationManager.update();
+    const stats = simulationManager.update();
     
-    // Render simulation
-    renderer.render();
+    // Render simulation using the enhanced renderer
+    simulationManager.render(renderer);
     
-    // Update UI statistics
-    uiController.updateStats();
+    // Update UI statistics with enhanced cluster data
+    uiController.updateStats(stats);
 }
 
 /**

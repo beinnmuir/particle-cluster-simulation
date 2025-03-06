@@ -22,6 +22,9 @@ class Particle {
         this.clusterTime = 0;
         this.isolationTime = 0;
         
+        // Cluster tracking
+        this.clusterSize = 0;
+        
         // Repulsion delay tracking
         this.repulsionTimer = 0;
         this.shouldRepulse = false;
@@ -158,11 +161,16 @@ class Particle {
             this.inCluster = false;
             this.shouldRepulse = false;
             this.repulsionTimer = 0;
+            this.clusterSize = 0; // Reset cluster size when leaving
         }
         
         // Update last known cluster size
         if (clusterSize > 0) {
             this.lastClusterSize = clusterSize;
+            // Also update current cluster size if in a cluster
+            if (this.inCluster) {
+                this.clusterSize = clusterSize;
+            }
         }
     }
     
@@ -172,6 +180,23 @@ class Particle {
      */
     incrementClusterCount() {
         this.clusterCount++;
+    }
+    
+    /**
+     * Set the current cluster size for this particle
+     * @param {number} size - Size of the cluster this particle belongs to
+     */
+    setClusterSize(size) {
+        this.clusterSize = size;
+        this.lastClusterSize = Math.max(this.lastClusterSize, size);
+    }
+    
+    /**
+     * Get the current cluster size for this particle
+     * @returns {number} - Size of the cluster this particle belongs to
+     */
+    getClusterSize() {
+        return this.clusterSize;
     }
     
     /**
@@ -186,12 +211,30 @@ class Particle {
         // Calculate hue: blue (240) -> cyan -> green -> yellow -> red (0) -> magenta
         // This creates a full 360° color cycle for better visual distinction
         let hue;
-        if (this.clusterCount <= maxClusterCount) {
-            // Map 0-100 to 240-0 (blue to red)
-            hue = map(this.clusterCount, 0, maxClusterCount, 240, 0);
+        
+        // Use cluster size to influence the color if in a cluster
+        if (this.inCluster && this.clusterSize > 1) {
+            // Map cluster size to hue: larger clusters = warmer colors
+            // Small clusters (2-5): blue to cyan (240-180)
+            // Medium clusters (6-15): cyan to green to yellow (180-60)
+            // Large clusters (16+): yellow to red to magenta (60-300)
+            const maxClusterSize = 30;
+            if (this.clusterSize <= 5) {
+                hue = map(this.clusterSize, 1, 5, 240, 180);
+            } else if (this.clusterSize <= 15) {
+                hue = map(this.clusterSize, 6, 15, 180, 60);
+            } else {
+                hue = map(Math.min(this.clusterSize, maxClusterSize), 16, maxClusterSize, 60, 300);
+            }
         } else {
-            // For counts > 100, cycle through red to magenta (0-300)
-            hue = map(this.clusterCount % maxClusterCount, 0, maxClusterCount, 0, 300);
+            // Fall back to cluster count for isolated particles
+            if (this.clusterCount <= maxClusterCount) {
+                // Map 0-100 to 240-0 (blue to red)
+                hue = map(this.clusterCount, 0, maxClusterCount, 240, 0);
+            } else {
+                // For counts > 100, cycle through red to magenta (0-300)
+                hue = map(this.clusterCount % maxClusterCount, 0, maxClusterCount, 0, 300);
+            }
         }
         
         const saturation = 80;

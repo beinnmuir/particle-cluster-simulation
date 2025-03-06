@@ -7,6 +7,15 @@ class ForceSystem {
         // Track clusters from previous frame to detect new cluster formations
         this.previousClusters = new Set();
         this.currentClusters = new Set();
+        
+        // Map to track which particles belong to which clusters
+        this.particleClusterMap = new Map();
+        
+        // Map to track the size of each cluster
+        this.clusterSizes = new Map();
+        
+        // Total number of distinct clusters
+        this.distinctClusterCount = 0;
     }
     
     /**
@@ -17,6 +26,9 @@ class ForceSystem {
     applyForces(particles, config) {
         // Reset current clusters for this frame
         this.currentClusters.clear();
+        this.particleClusterMap.clear();
+        this.clusterSizes.clear();
+        this.distinctClusterCount = 0;
         
         // First pass: reset cluster status and apply forces
         for (let i = 0; i < particles.length; i++) {
@@ -37,6 +49,9 @@ class ForceSystem {
                 this.applyForceBetweenParticles(particles[i], particles[j], config);
             }
         }
+        
+        // After all forces are applied, identify distinct clusters
+        this.identifyDistinctClusters(particles);
         
         // Second pass: detect new clusters and update cluster counts
         // Find clusters that are new in this frame but weren't in the previous frame
@@ -165,5 +180,95 @@ class ForceSystem {
         
         // Return count + 1 (the two particles themselves form a cluster)
         return count + 1;
+    }
+    
+    /**
+     * Identify distinct clusters of particles based on their connections
+     * @param {Array} particles - Array of all particles in the simulation
+     */
+    identifyDistinctClusters(particles) {
+        // Use a disjoint-set data structure to identify connected components (clusters)
+        const particleCount = particles.length;
+        const parent = new Array(particleCount).fill().map((_, i) => i); // Each particle starts in its own set
+        
+        // Find function with path compression
+        const find = (x) => {
+            if (parent[x] !== x) {
+                parent[x] = find(parent[x]);
+            }
+            return parent[x];
+        };
+        
+        // Union function to merge sets
+        const union = (x, y) => {
+            parent[find(x)] = find(y);
+        };
+        
+        // Process all connections to build the disjoint sets
+        for (const connection of this.currentClusters) {
+            const [id1, id2] = connection.split('-').map(id => parseInt(id));
+            union(id1, id2);
+        }
+        
+        // Count distinct clusters and their sizes
+        const clusterMap = new Map(); // Maps cluster root to array of particle IDs
+        
+        for (let i = 0; i < particleCount; i++) {
+            const root = find(i);
+            if (!clusterMap.has(root)) {
+                clusterMap.set(root, []);
+            }
+            clusterMap.get(root).push(i);
+        }
+        
+        // Filter out single particles (not in clusters)
+        const realClusters = Array.from(clusterMap.values())
+            .filter(cluster => cluster.length > 1);
+        
+        // Update cluster information
+        this.distinctClusterCount = realClusters.length;
+        
+        // Map particles to their cluster index and update cluster sizes
+        realClusters.forEach((cluster, index) => {
+            const clusterSize = cluster.length;
+            this.clusterSizes.set(index, clusterSize);
+            
+            // Update each particle with its cluster info
+            cluster.forEach(particleId => {
+                this.particleClusterMap.set(particleId, index);
+                
+                // Update the particle's cluster size if possible
+                if (particleId >= 0 && particleId < particles.length) {
+                    const particle = particles[particleId];
+                    if (typeof particle.setClusterSize === 'function') {
+                        particle.setClusterSize(clusterSize);
+                    } else if (particle.clusterSize !== undefined) {
+                        particle.clusterSize = clusterSize;
+                    }
+                }
+            });
+        });
+    }
+    
+    /**
+     * Get the total number of distinct clusters
+     * @returns {number} - Number of distinct clusters
+     */
+    getDistinctClusterCount() {
+        return this.distinctClusterCount;
+    }
+    
+    /**
+     * Get the size of the cluster containing the given particle
+     * @param {number} particleId - ID of the particle
+     * @returns {number} - Size of the cluster (0 if not in a cluster)
+     */
+    getClusterSize(particleId) {
+        if (!this.particleClusterMap.has(particleId)) {
+            return 0; // Not in a cluster
+        }
+        
+        const clusterIndex = this.particleClusterMap.get(particleId);
+        return this.clusterSizes.get(clusterIndex) || 0;
     }
 }

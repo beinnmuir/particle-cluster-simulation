@@ -15,6 +15,8 @@ class SimulationManager {
         this.stats = {
             averageMass: 0,
             clusterCount: 0,
+            particlesInClusters: 0,
+            distinctClusters: 0,
             fps: 0
         };
     }
@@ -24,6 +26,7 @@ class SimulationManager {
      */
     initialize() {
         this.particles = [];
+        this.forceSystem = new ForceSystem(); // Reset force system
         
         // Create particles with random positions
         for (let i = 0; i < this.config.current.particleCount; i++) {
@@ -31,10 +34,13 @@ class SimulationManager {
             const y = random(this.config.current.canvasHeight);
             const mass = this.config.current.initialMass;
             
-            this.particles.push(new Particle(x, y, mass));
+            const particle = new Particle(x, y, mass);
+            particle.id = i; // Assign ID for cluster tracking
+            this.particles.push(particle);
         }
         
         this.running = false;
+        this.updateStats(); // Initialize stats
     }
     
     /**
@@ -74,6 +80,8 @@ class SimulationManager {
         
         // Update statistics
         this.updateStats();
+        
+        return this.stats; // Return current stats for external use
     }
     
     /**
@@ -83,27 +91,39 @@ class SimulationManager {
         // Calculate average mass
         let totalMass = 0;
         let totalClusters = 0;
+        let particlesInClusters = 0;
         
         for (let particle of this.particles) {
             totalMass += particle.mass;
             totalClusters += particle.clusterCount;
+            if (particle.inCluster) {
+                particlesInClusters++;
+            }
         }
         
         this.stats.averageMass = totalMass / this.particles.length;
         this.stats.clusterCount = totalClusters;
+        this.stats.particlesInClusters = particlesInClusters;
+        this.stats.distinctClusters = this.forceSystem.getDistinctClusterCount();
         this.stats.fps = frameRate();
     }
     
     /**
-     * Render all particles
+     * Render the simulation
+     * @param {Renderer} renderer - The renderer instance to use
      */
-    render() {
-        // Clear background
-        background(240);
-        
-        // Draw each particle
-        for (let particle of this.particles) {
-            particle.display();
+    render(renderer) {
+        if (renderer) {
+            // Use the provided renderer
+            renderer.render();
+        } else {
+            // Fallback to basic rendering if no renderer is provided
+            background(240);
+            
+            // Draw each particle
+            for (let particle of this.particles) {
+                particle.display();
+            }
         }
     }
     
@@ -113,5 +133,21 @@ class SimulationManager {
     resize(width, height) {
         this.config.current.canvasWidth = width;
         this.config.current.canvasHeight = height;
+    }
+    
+    /**
+     * Get the force system
+     * @returns {ForceSystem} - The force system instance
+     */
+    getForceSystem() {
+        return this.forceSystem;
+    }
+    
+    /**
+     * Get current simulation statistics
+     * @returns {object} - Current simulation statistics
+     */
+    getStats() {
+        return this.stats;
     }
 }
