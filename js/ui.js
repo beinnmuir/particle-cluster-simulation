@@ -62,6 +62,25 @@ class UIController {
             this.simulation.reset();
             startPauseBtn.html('Start');
         });
+
+        // Default Settings button
+        const defaultBtn = createButton('Default Settings');
+        defaultBtn.parent(group);
+        defaultBtn.mousePressed(() => {
+            this.resetToDefaultSettings();
+            this.simulation.reset();
+            startPauseBtn.html('Start');
+        });
+
+        // Try Me button
+        const tryMeBtn = createButton('Try Me');
+        tryMeBtn.parent(group);
+        tryMeBtn.mousePressed(() => {
+            this.setToTryMeSettings();
+            this.simulation.reset();
+            this.simulation.start();
+            startPauseBtn.html('Pause');
+        });
     }
     
     /**
@@ -324,6 +343,62 @@ class UIController {
      * Create statistics display
      * @param {p5.Element} container - Parent container
      */
+    /**
+     * Reset all settings to their default values
+     */
+    resetToDefaultSettings() {
+        // Update all sliders to their default values
+        this.config.resetToDefaults();
+        
+        // Update UI sliders
+        for (const [key, control] of Object.entries(this.controls)) {
+            if (control.slider) {
+                control.slider.value(this.config.current[key]);
+                if (control.valueDisplay) {
+                    control.valueDisplay.html(this.config.current[key]);
+                }
+            }
+        }
+    }
+
+    /**
+     * Set settings to the "Try Me" configuration
+     */
+    setToTryMeSettings() {
+        const tryMeSettings = {
+            particleCount: 400,
+            initialMass: 5,
+            maxSpeed: 5,
+            dampeningCoefficient: 0.03,
+            thresholdDistance: 60,
+            attractionCoefficient: 0.03,
+            repulsionCoefficient: 1,
+            stickyForceCoefficient: 1.21,
+            repulsionDelay: 120,
+            delayIncrease: 30,
+            maxRepulsionDelay: 300,
+            minMass: 2,
+            maxMass: 20,
+            massGainRate: 0.003,
+            massLossRate: 0.1
+        };
+
+        // Update config with new settings
+        for (const [key, value] of Object.entries(tryMeSettings)) {
+            this.config.updateSetting(key, value);
+        }
+
+        // Update UI sliders
+        for (const [key, control] of Object.entries(this.controls)) {
+            if (control.slider && tryMeSettings[key] !== undefined) {
+                control.slider.value(tryMeSettings[key]);
+                if (control.valueDisplay) {
+                    control.valueDisplay.html(tryMeSettings[key]);
+                }
+            }
+        }
+    }
+
     createStatsDisplay(container) {
         const statsDiv = createDiv();
         statsDiv.class('stats-display');

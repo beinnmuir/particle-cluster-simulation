@@ -20,9 +20,9 @@ class Config {
             stickyForcePower: 4,
             
             // Repulsion delay settings
-            repulsionDelay: 120, // Frames to wait before repulsion activates (2 seconds at 60fps)
-            repulsionDelayIncrease: 30, // Additional frames added when a new particle joins
-            maxRepulsionDelay: 300, // Maximum repulsion delay (5 seconds at 60fps)
+            repulsionDelay: 120,
+            delayIncrease: 30,
+            maxRepulsionDelay: 300,
             
             // Mass evolution settings
             massGainRate: 0.01,
