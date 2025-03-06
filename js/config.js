@@ -13,7 +13,7 @@ class Config {
             maxMass: 20,
             
             // Force settings
-            thresholdDistance: 50,
+            thresholdDistance: 60,
             attractionCoefficient: 0.1,
             repulsionCoefficient: 0.2,
             stickyForceCoefficient: 0.5,
@@ -25,8 +25,8 @@ class Config {
             maxRepulsionDelay: 300,
             
             // Mass evolution settings
-            massGainRate: 0.01,
-            massLossRate: 0.005,
+            massGainRate: 0.02,
+            massLossRate: 0.003,
             
             // Canvas settings
             canvasWidth: window.innerWidth,
