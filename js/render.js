@@ -65,14 +65,22 @@ class Renderer {
         if (particle.inCluster && particle.clusterSize > 1) {
             // Calculate ring color based on current cluster size
             let ringHue;
-            const maxClusterSize = 30;
+            // Set max cluster size to 80% of total particle count
+            const maxClusterSize = Math.floor(this.simulation.particles.length * 0.8);
             
-            if (particle.clusterSize <= 5) {
-                ringHue = map(particle.clusterSize, 1, 5, 240, 180);
-            } else if (particle.clusterSize <= 15) {
-                ringHue = map(particle.clusterSize, 6, 15, 180, 60);
+            // Map cluster sizes to color ranges
+            // Small clusters (2-20% of max): blue to cyan (240-180)
+            // Medium clusters (20-50% of max): cyan to yellow (180-60)
+            // Large clusters (50-100% of max): yellow to red (60-0)
+            const smallThreshold = Math.max(2, Math.floor(maxClusterSize * 0.2));
+            const mediumThreshold = Math.floor(maxClusterSize * 0.5);
+            
+            if (particle.clusterSize <= smallThreshold) {
+                ringHue = map(particle.clusterSize, 2, smallThreshold, 240, 180);
+            } else if (particle.clusterSize <= mediumThreshold) {
+                ringHue = map(particle.clusterSize, smallThreshold, mediumThreshold, 180, 60);
             } else {
-                ringHue = map(Math.min(particle.clusterSize, maxClusterSize), 16, maxClusterSize, 60, 300);
+                ringHue = map(Math.min(particle.clusterSize, maxClusterSize), mediumThreshold, maxClusterSize, 60, 0);
             }
             
             // Draw outer glow effect
@@ -133,13 +141,18 @@ class Renderer {
                             colorMode(HSB, 360, 100, 100);
                             
                             // Determine color based on cluster size (same logic as particle color)
+                            // Use the same color mapping as particle rings
+                            const maxSize = Math.floor(this.simulation.particles.length * 0.8);
+                            const smallThresh = Math.max(2, Math.floor(maxSize * 0.2));
+                            const mediumThresh = Math.floor(maxSize * 0.5);
+                            
                             let hue;
-                            if (clusterSize <= 5) {
-                                hue = map(clusterSize, 1, 5, 240, 180);
-                            } else if (clusterSize <= 15) {
-                                hue = map(clusterSize, 6, 15, 180, 60);
+                            if (clusterSize <= smallThresh) {
+                                hue = map(clusterSize, 2, smallThresh, 240, 180);
+                            } else if (clusterSize <= mediumThresh) {
+                                hue = map(clusterSize, smallThresh, mediumThresh, 180, 60);
                             } else {
-                                hue = map(Math.min(clusterSize, 30), 16, 30, 60, 300);
+                                hue = map(Math.min(clusterSize, maxSize), mediumThresh, maxSize, 60, 0);
                             }
                             
                             stroke(hue, 70, 90, alpha);
