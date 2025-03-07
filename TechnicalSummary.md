@@ -28,6 +28,7 @@ The project follows a modular architecture with clear separation of concerns:
 ### 2.2 Key Files and Their Purposes
 
 - `js/particle.js`: Defines the Particle class with position, velocity, mass, and clustering properties
+- `js/particleFactory.js`: Implements the ParticleFactory class for centralized particle creation and configuration
 - `js/force.js`: Implements the ForceSystem class for calculating forces and detecting clusters
 - `js/render.js`: Contains the Renderer class for visualizing particles and clusters
 - `js/simulation.js`: Manages the overall simulation state and lifecycle
@@ -243,7 +244,43 @@ Fixed an issue where repulsive forces were only being applied to two particles i
 
 These changes ensure that when particles in a cluster should repulse, the repulsion is applied uniformly to all particles in that cluster, not just a pair of particles.
 
-### 5.5 Visualization and UI Improvements (March 2025)
+### 5.5 Factory Pattern Implementation (March 2025)
+
+Implemented a dedicated particle factory pattern to improve code organization and maintainability:
+
+1. **Centralized Particle Creation**: Created a new `ParticleFactory` class in `js/particleFactory.js` that handles all particle instantiation:
+   ```javascript
+   class ParticleFactory {
+       constructor(config) {
+           this.config = config;
+           this.particleCount = 0; // Counter for generating unique IDs
+       }
+       
+       createRandomParticle() {
+           const x = random(this.config.current.canvasWidth);
+           const y = random(this.config.current.canvasHeight);
+           const mass = this.config.current.initialMass;
+           
+           const particle = new Particle(x, y, mass);
+           particle.id = this.particleCount++;
+           return particle;
+       }
+   }
+   ```
+
+2. **Enhanced Particle Management**:
+   - Consistent ID generation and tracking
+   - Support for different particle creation strategies
+   - Centralized configuration management
+
+3. **Improved Simulation Integration**:
+   - Modified `SimulationManager` to use the factory pattern
+   - Simplified particle initialization process
+   - Better separation of concerns between creation and management
+
+These changes provide a foundation for future extensions such as different particle types or behaviors.
+
+### 5.6 Visualization and UI Improvements (March 2025)
 
 Enhanced the visualization and user interface to improve user experience and visual clarity:
 
