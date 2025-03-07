@@ -11,6 +11,7 @@ class SimulationManager {
         this.particles = [];
         this.forceSystem = new ForceSystem();
         this.config = config;
+        this.particleFactory = new ParticleFactory(config);
         this.running = false;
         this.stats = {
             averageMass: 0,
@@ -27,17 +28,10 @@ class SimulationManager {
     initialize() {
         this.particles = [];
         this.forceSystem = new ForceSystem(); // Reset force system
+        this.particleFactory.reset(); // Reset particle ID counter
         
-        // Create particles with random positions
-        for (let i = 0; i < this.config.current.particleCount; i++) {
-            const x = random(this.config.current.canvasWidth);
-            const y = random(this.config.current.canvasHeight);
-            const mass = this.config.current.initialMass;
-            
-            const particle = new Particle(x, y, mass);
-            particle.id = i; // Assign ID for cluster tracking
-            this.particles.push(particle);
-        }
+        // Create particles using the factory
+        this.particles = this.particleFactory.createParticleBatch(this.config.current.particleCount);
         
         this.running = false;
         this.updateStats(); // Initialize stats
