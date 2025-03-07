@@ -23,10 +23,77 @@ class UIController {
         // Create control groups
         this.createSimulationControls(controlsContainer);
         this.createParticleControls(controlsContainer);
+        this.createRodParticleControls(controlsContainer);  // New rod particle controls
         this.createForceControls(controlsContainer);
         this.createRepulsionDelayControls(controlsContainer);
         this.createMassControls(controlsContainer);
         this.createStatsDisplay(controlsContainer);
+    }
+
+    /**
+     * Create rod particle control elements
+     * @param {p5.Element} container - Parent container
+     */
+    createRodParticleControls(container) {
+        const group = createDiv();
+        group.class('control-group');
+        group.parent(container);
+        
+        // Title
+        const title = createElement('h3', 'Rod Particle Controls');
+        title.parent(group);
+        
+        // Particle type selector
+        const typeLabel = createElement('label', 'Particle Type:');
+        typeLabel.parent(group);
+        const typeSelect = createSelect();
+        typeSelect.parent(group);
+        typeSelect.option('Circular', 'circular');
+        typeSelect.option('Rod', 'rod');
+        typeSelect.option('Mixed', 'mixed');
+        typeSelect.selected(this.config.current.particleType);
+        typeSelect.changed(() => {
+            this.config.updateSetting('particleType', typeSelect.value());
+            this.simulation.reset();
+        });
+        
+        // Rod ratio slider (only visible when type is 'mixed')
+        const ratioDiv = createDiv();
+        ratioDiv.parent(group);
+        ratioDiv.id('rod-ratio-control');
+        ratioDiv.style('display', this.config.current.particleType === 'mixed' ? 'block' : 'none');
+        
+        this.createSlider(
+            ratioDiv,
+            'rodRatio',
+            'Rod Particle Ratio',
+            0, 1,
+            this.config.current.rodRatio,
+            0.1,
+            (value) => {
+                this.config.updateSetting('rodRatio', value);
+                this.simulation.reset();
+            }
+        );
+        
+        // Rod length slider
+        this.createSlider(
+            group,
+            'rodLength',
+            'Rod Length',
+            10, 100,  
+            this.config.current.rodLength,
+            1,
+            (value) => {
+                this.config.updateSetting('rodLength', value);
+                this.simulation.reset();
+            }
+        );
+        
+        // Update rod ratio visibility when type changes
+        typeSelect.changed(() => {
+            ratioDiv.style('display', typeSelect.value() === 'mixed' ? 'block' : 'none');
+        });
     }
     
     /**
@@ -460,6 +527,8 @@ class UIController {
         this.statsElements = {
             fps: createP('FPS: 0'),
             particleCount: createP('Particles: 0'),
+            rodParticles: createP('Rod Particles: 0'),
+            circularParticles: createP('Circular Particles: 0'),
             averageMass: createP('Avg Mass: 0'),
             totalClusters: createP('Total Clusters: 0'),
             distinctClusters: createP('Distinct Clusters: 0'),
@@ -528,6 +597,8 @@ class UIController {
         // Update basic stats
         this.statsElements.fps.html(`FPS: ${simStats.fps.toFixed(1)}`);
         this.statsElements.particleCount.html(`Particles: ${this.simulation.particles.length}`);
+        this.statsElements.rodParticles.html(`Rod Particles: ${simStats.rodParticleCount}`);
+        this.statsElements.circularParticles.html(`Circular Particles: ${simStats.circularParticleCount}`);
         this.statsElements.averageMass.html(`Avg Mass: ${simStats.averageMass.toFixed(2)}`);
         this.statsElements.totalClusters.html(`Total Clusters: ${simStats.clusterCount}`);
         

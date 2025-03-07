@@ -43,13 +43,6 @@ class Renderer {
         // Set color mode to HSB for more intuitive color mapping
         colorMode(HSB, 360, 100, 100);
         
-        // Calculate size multiplier based on mass
-        let sizeMultiplier = 2;
-        if (particle.inCluster && particle.clusterSize > 1) {
-            // Add a small bonus to size based on cluster size (max +0.5)
-            sizeMultiplier += map(Math.min(particle.clusterSize, 20), 1, 20, 0, 0.5);
-        }
-        
         // Calculate colors for main fill (based on cluster count history)
         const maxClusterCount = 100;
         let mainHue;
@@ -60,18 +53,14 @@ class Renderer {
             // For counts > 100, cycle through red to magenta (0-300)
             mainHue = map(particle.clusterCount % maxClusterCount, 0, maxClusterCount, 0, 300);
         }
-        
-        // Draw outer ring if particle is in a cluster
+
+        // Calculate ring color if particle is in a cluster
+        let ringHue;
         if (particle.inCluster && particle.clusterSize > 1) {
-            // Calculate ring color based on current cluster size
-            let ringHue;
             // Set max cluster size to 80% of total particle count
             const maxClusterSize = Math.floor(this.simulation.particles.length * 0.8);
             
             // Map cluster sizes to color ranges
-            // Small clusters (2-20% of max): blue to cyan (240-180)
-            // Medium clusters (20-50% of max): cyan to yellow (180-60)
-            // Large clusters (50-100% of max): yellow to red (60-0)
             const smallThreshold = Math.max(2, Math.floor(maxClusterSize * 0.2));
             const mediumThreshold = Math.floor(maxClusterSize * 0.5);
             
@@ -82,26 +71,81 @@ class Renderer {
             } else {
                 ringHue = map(Math.min(particle.clusterSize, maxClusterSize), mediumThreshold, maxClusterSize, 60, 0);
             }
-            
-            // Calculate base particle size
-            const baseSize = particle.mass * sizeMultiplier;
-            
-            // Fixed pixel size for glow
-            const glowPixels = 4; // How many pixels the glow extends outward
-            
-            // Draw outer glow effect
-            noStroke();
-            fill(ringHue, 60, 70, 30);
-            circle(particle.position.x, particle.position.y, baseSize + (glowPixels * 2)); // *2 because we add pixels to both sides
         }
-        
-        // Draw main particle circle
-        noStroke();
-        fill(mainHue, 60, 70);
-        circle(particle.position.x, particle.position.y, particle.mass * sizeMultiplier);
+
+        if (particle instanceof RodParticle) {
+            this.renderRodParticle(particle, mainHue, ringHue);
+        } else {
+            this.renderCircularParticle(particle, mainHue, ringHue);
+        }
         
         // Reset color mode to default
         colorMode(RGB, 255, 255, 255);
+    }
+
+    /**
+     * Render a circular particle
+     * @param {Particle} particle - The particle to render
+     * @param {number} mainHue - Main color hue
+     * @param {number} ringHue - Ring color hue (for clustered particles)
+     */
+    renderCircularParticle(particle, mainHue, ringHue) {
+        // Calculate size multiplier based on mass
+        let sizeMultiplier = 2;
+        if (particle.inCluster && particle.clusterSize > 1) {
+            // Add a small bonus to size based on cluster size (max +0.5)
+            sizeMultiplier += map(Math.min(particle.clusterSize, 20), 1, 20, 0, 0.5);
+        }
+
+        // Calculate base particle size
+        const baseSize = particle.mass * sizeMultiplier;
+
+        // Draw outer glow if particle is in a cluster
+        if (particle.inCluster && particle.clusterSize > 1) {
+            const glowPixels = 4; // Fixed pixel size for glow
+            noStroke();
+            fill(ringHue, 60, 70, 30);
+            circle(particle.position.x, particle.position.y, baseSize + (glowPixels * 2));
+        }
+
+        // Draw main particle circle
+        noStroke();
+        fill(mainHue, 60, 70);
+        circle(particle.position.x, particle.position.y, baseSize);
+    }
+
+    /**
+     * Render a rod-shaped particle
+     * @param {RodParticle} particle - The rod particle to render
+     * @param {number} mainHue - Main color hue
+     * @param {number} ringHue - Ring color hue (for clustered particles)
+     */
+    renderRodParticle(particle, mainHue, ringHue) {
+        // Calculate endpoint size based on mass
+        const endpointSize = particle.mass * 2.0;
+        
+        // Draw glow effect if particle is in a cluster
+        if (particle.inCluster && particle.clusterSize > 1) {
+            const glowPixels = 6;
+            noStroke();
+            fill(ringHue, 60, 70, 30);
+            
+            // Draw glow as a thick line
+            strokeWeight(endpointSize + (glowPixels * 2));
+            stroke(ringHue, 60, 70, 30);
+            line(particle.pointA.x, particle.pointA.y, particle.pointB.x, particle.pointB.y);
+        }
+
+        // Draw main rod body - line thickness equals endpoint size
+        strokeWeight(endpointSize);
+        stroke(mainHue, 60, 70);
+        line(particle.pointA.x, particle.pointA.y, particle.pointB.x, particle.pointB.y);
+
+        // Draw circles at endpoints with same size as line thickness
+        noStroke();
+        fill(mainHue, 60, 70);
+        circle(particle.pointA.x, particle.pointA.y, endpointSize);
+        circle(particle.pointB.x, particle.pointB.y, endpointSize);
     }
     
     /**

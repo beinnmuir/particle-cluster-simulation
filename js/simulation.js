@@ -8,6 +8,16 @@ class SimulationManager {
      * @param {object} config - Configuration object
      */
     constructor(config) {
+        // Set default rod particle configuration if not provided
+        if (!config.current) {
+            config.current = {};
+        }
+        
+        // Rod particle specific defaults
+        config.current.particleType = config.current.particleType || 'circular';
+        config.current.rodRatio = config.current.rodRatio || 0;
+        config.current.rodLength = config.current.rodLength || 20;
+        
         this.particles = [];
         this.forceSystem = new ForceSystem();
         this.config = config;
@@ -18,7 +28,9 @@ class SimulationManager {
             clusterCount: 0,
             particlesInClusters: 0,
             distinctClusters: 0,
-            fps: 0
+            fps: 0,
+            rodParticleCount: 0,  // Track number of rod particles
+            circularParticleCount: 0  // Track number of circular particles
         };
     }
     
@@ -30,8 +42,17 @@ class SimulationManager {
         this.forceSystem = new ForceSystem(); // Reset force system
         this.particleFactory.reset(); // Reset particle ID counter
         
-        // Create particles using the factory
-        this.particles = this.particleFactory.createParticleBatch(this.config.current.particleCount);
+        // Get particle creation options from config
+        const options = {
+            type: this.config.current.particleType || 'circular',
+            rodRatio: this.config.current.rodRatio || 0
+        };
+        
+        // Create particles using the factory with specified options
+        this.particles = this.particleFactory.createParticleBatch(
+            this.config.current.particleCount,
+            options
+        );
         
         this.running = false;
         this.updateStats(); // Initialize stats
@@ -82,16 +103,26 @@ class SimulationManager {
      * Update simulation statistics
      */
     updateStats() {
-        // Calculate average mass
+        // Calculate average mass and particle type counts
         let totalMass = 0;
         let totalClusters = 0;
         let particlesInClusters = 0;
+        let rodCount = 0;
+        let circularCount = 0;
         
         for (let particle of this.particles) {
             totalMass += particle.mass;
             totalClusters += particle.clusterCount;
+            
             if (particle.inCluster) {
                 particlesInClusters++;
+            }
+            
+            // Count particle types
+            if (particle instanceof RodParticle) {
+                rodCount++;
+            } else {
+                circularCount++;
             }
         }
         
@@ -100,6 +131,8 @@ class SimulationManager {
         this.stats.particlesInClusters = particlesInClusters;
         this.stats.distinctClusters = this.forceSystem.getDistinctClusterCount();
         this.stats.fps = frameRate();
+        this.stats.rodParticleCount = rodCount;
+        this.stats.circularParticleCount = circularCount;
     }
     
     /**
