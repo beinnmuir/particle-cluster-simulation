@@ -12,6 +12,7 @@ class UIController {
         this.simulation = simulation;
         this.config = config;
         this.controls = {};
+        this.startPauseBtn = null; // Reference to the start/pause button
     }
     
     /**
@@ -47,6 +48,8 @@ class UIController {
         const typeLabel = createElement('label', 'Particle Type:');
         typeLabel.parent(group);
         
+        // We already have a reference to the start/pause button as this.startPauseBtn
+        
         // Create buttons instead of dropdown for more reliable control
         const circularBtn = createButton('Circular');
         circularBtn.parent(group);
@@ -59,6 +62,8 @@ class UIController {
             // Hide rod ratio slider for circular particles
             ratioDiv.style('display', 'none');
             this.simulation.reset();
+            // Update start/pause button text since simulation is now stopped
+            if (this.startPauseBtn) this.startPauseBtn.html('Start');
         });
         
         const rodBtn = createButton('Rod');
@@ -72,6 +77,8 @@ class UIController {
             // Hide rod ratio slider for rod particles
             ratioDiv.style('display', 'none');
             this.simulation.reset();
+            // Update start/pause button text since simulation is now stopped
+            if (this.startPauseBtn) this.startPauseBtn.html('Start');
         });
         
         const mixedBtn = createButton('Mixed');
@@ -85,6 +92,8 @@ class UIController {
             // Show rod ratio slider for mixed particles
             ratioDiv.style('display', 'block');
             this.simulation.reset();
+            // Update start/pause button text since simulation is now stopped
+            if (this.startPauseBtn) this.startPauseBtn.html('Start');
         });
         
         // Rod ratio slider (only visible when type is 'mixed')
@@ -137,15 +146,15 @@ class UIController {
         title.parent(group);
         
         // Start/Pause button
-        const startPauseBtn = createButton('Start');
-        startPauseBtn.parent(group);
-        startPauseBtn.mousePressed(() => {
+        this.startPauseBtn = createButton('Start');
+        this.startPauseBtn.parent(group);
+        this.startPauseBtn.mousePressed(() => {
             if (this.simulation.running) {
                 this.simulation.pause();
-                startPauseBtn.html('Start');
+                this.startPauseBtn.html('Start');
             } else {
                 this.simulation.start();
-                startPauseBtn.html('Pause');
+                this.startPauseBtn.html('Pause');
             }
         });
         
@@ -154,7 +163,7 @@ class UIController {
         resetBtn.parent(group);
         resetBtn.mousePressed(() => {
             this.simulation.reset();
-            startPauseBtn.html('Start');
+            this.startPauseBtn.html('Start');
         });
 
         // Default Settings button
@@ -163,7 +172,7 @@ class UIController {
         defaultBtn.mousePressed(() => {
             this.resetToDefaultSettings();
             this.simulation.reset();
-            startPauseBtn.html('Start');
+            this.startPauseBtn.html('Start');
         });
 
         // Try Me Settings 1 button
@@ -173,7 +182,7 @@ class UIController {
             this.setToTryMeSettings();
             this.simulation.reset();
             this.simulation.start();
-            startPauseBtn.html('Pause');
+            this.startPauseBtn.html('Pause');
         });
         
         // Try Me Settings 2 button
@@ -183,7 +192,7 @@ class UIController {
             this.setToTryMeSettings2();
             this.simulation.reset();
             this.simulation.start();
-            startPauseBtn.html('Pause');
+            this.startPauseBtn.html('Pause');
         });
     }
     
