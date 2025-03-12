@@ -235,6 +235,10 @@ The UI code has been refactored using a functional separation approach to improv
    - Preserved direct file access capability without requiring a server
    - No build step required, maintaining simplicity
 
+5. **Original Code Preservation**: The original monolithic implementation has been archived for reference:
+   - Original file: `js/ui.js` moved to `js/archive/ui.js`
+   - This preserves the original implementation for future reference while keeping the active codebase clean
+
 ### 5.5 Repulsion Mechanism Improvements (March 2025)
 
 Fixed an issue where repulsive forces were only being applied to two particles in a cluster, instead of propagating to all particles. The key changes were:
