@@ -116,15 +116,33 @@ class ForceSystem {
      * @param {object} config - Current simulation configuration
      */
     applyForceBetweenParticles(p1, p2, config) {
-        // Calculate distance between particles
-        const force = p5.Vector.sub(p2.position, p1.position);
-        const distance = force.mag();
+        // Determine interaction points for both particles
+        // For regular particles, this will be their center position
+        // For rod particles, this will be the closest point (endpoint or center)
+        let p1InteractionPoint = p1.position;
+        let p2InteractionPoint = p2.position;
         
-        // Skip if particles are at the same position
+        // Check if either particle is a RodParticle and get the appropriate interaction point
+        const isP1Rod = p1.constructor.name === 'RodParticle';
+        const isP2Rod = p2.constructor.name === 'RodParticle';
+        
+        if (isP1Rod) {
+            p1InteractionPoint = p1.getInteractionPoint(p2.position);
+        }
+        
+        if (isP2Rod) {
+            p2InteractionPoint = p2.getInteractionPoint(p1.position);
+        }
+        
+        // Calculate distance between interaction points (not just centers)
+        const forceVector = p5.Vector.sub(p2InteractionPoint, p1InteractionPoint);
+        const distance = forceVector.mag();
+        
+        // Skip if interaction points are at the same position
         if (distance === 0) return;
         
         // Normalize the force vector
-        force.normalize();
+        forceVector.normalize();
         
         // Calculate force magnitude based on distance
         let forceMagnitude = 0;
@@ -166,8 +184,21 @@ class ForceSystem {
                 const radialForceMagnitude = config.repulsionCoefficient * 0.5 * 
                     (p1.mass * p2.mass) / (distance * distance);
                 
-                p1.applyForce(p5.Vector.mult(p1Direction, radialForceMagnitude));
-                p2.applyForce(p5.Vector.mult(p2Direction, radialForceMagnitude));
+                // For regular particles, apply force to center
+                // For rod particles, apply force at the interaction point
+                if (isP1Rod) {
+                    const radialForce = p5.Vector.mult(p1Direction, radialForceMagnitude);
+                    p1.applyForceAtPoint(radialForce, p1InteractionPoint);
+                } else {
+                    p1.applyForce(p5.Vector.mult(p1Direction, radialForceMagnitude));
+                }
+                
+                if (isP2Rod) {
+                    const radialForce = p5.Vector.mult(p2Direction, radialForceMagnitude);
+                    p2.applyForceAtPoint(radialForce, p2InteractionPoint);
+                } else {
+                    p2.applyForce(p5.Vector.mult(p2Direction, radialForceMagnitude));
+                }
                 
                 // Also apply a small repulsive force between particles
                 forceMagnitude = -config.repulsionCoefficient * 0.3 * 
@@ -188,13 +219,26 @@ class ForceSystem {
         }
         
         // Scale the force vector by the calculated magnitude (for non-radial forces)
-        force.mult(forceMagnitude);
+        const finalForce = p5.Vector.mult(forceVector, forceMagnitude);
         
         // Apply the force to both particles (equal and opposite)
         // Skip if we already applied radial forces
         if (!(sameCluster && (p1ClusterShouldRepulse || p2ClusterShouldRepulse) && this.clusterCenters.get(p1ClusterId))) {
-            p1.applyForce(force);
-            p2.applyForce(p5.Vector.mult(force, -1));
+            // For rod particles, apply force at the interaction point to generate torque
+            // For regular particles, apply force at the center
+            if (isP1Rod) {
+                p1.applyForceAtPoint(finalForce, p1InteractionPoint);
+            } else {
+                p1.applyForce(finalForce);
+            }
+            
+            // Apply equal and opposite force to the second particle
+            const oppositeForce = p5.Vector.mult(finalForce, -1);
+            if (isP2Rod) {
+                p2.applyForceAtPoint(oppositeForce, p2InteractionPoint);
+            } else {
+                p2.applyForce(oppositeForce);
+            }
         }
         
         // Check if particles are close enough to be considered in a cluster
