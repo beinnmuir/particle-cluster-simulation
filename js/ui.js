@@ -486,13 +486,13 @@ class UIController {
         // Repulsion delay increase slider
         this.createSlider(
             group,
-            'repulsionDelayIncrease',
+            'delayIncrease',
             'Delay Increase on Join',
             0, 100, 
-            this.config.current.repulsionDelayIncrease,
+            this.config.current.delayIncrease,
             5,
             (value) => {
-                this.config.updateSetting('repulsionDelayIncrease', value);
+                this.config.updateSetting('delayIncrease', value);
             }
         );
         
