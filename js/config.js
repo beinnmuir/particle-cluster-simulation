@@ -49,9 +49,19 @@ class Config {
     
     /**
      * Reset settings to defaults
+     * @param {Object} preserveSettings - Optional object containing settings to preserve
      */
-    resetToDefaults() {
+    resetToDefaults(preserveSettings = {}) {
+        // First reset everything to defaults
         this.current = Object.assign({}, this.defaults);
+        
+        // Then apply any preserved settings
+        Object.entries(preserveSettings).forEach(([key, value]) => {
+            if (key in this.current) {
+                this.current[key] = value;
+            }
+        });
+        
         return this.current;
     }
     

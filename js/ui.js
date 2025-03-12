@@ -13,6 +13,7 @@ class UIController {
         this.config = config;
         this.controls = {};
         this.startPauseBtn = null; // Reference to the start/pause button
+        this.tryMeButtons = {}; // References to Try Me buttons
     }
     
     /**
@@ -91,7 +92,7 @@ class UIController {
             // Hide rod length slider for circular particles
             rodLengthDiv.style('display', 'none');
             
-            // Update button styles
+            // Update button styles and Try Me buttons visibility
             this.updateMorphologyButtonStyles('circular');
             
             this.simulation.reset();
@@ -120,7 +121,7 @@ class UIController {
             // Show rod length slider for rod particles
             rodLengthDiv.style('display', 'block');
             
-            // Update button styles
+            // Update button styles and Try Me buttons visibility
             this.updateMorphologyButtonStyles('rod');
             
             this.simulation.reset();
@@ -149,7 +150,7 @@ class UIController {
             // Show rod length slider for mixed particles
             rodLengthDiv.style('display', 'block');
             
-            // Update button styles
+            // Update button styles and Try Me buttons visibility
             this.updateMorphologyButtonStyles('mixed');
             
             this.simulation.reset();
@@ -229,6 +230,25 @@ class UIController {
         if (this.morphologyButtons[selectedType]) {
             this.morphologyButtons[selectedType].style('background-color', selectedStyle.backgroundColor);
         }
+        
+        // Update Try Me buttons visibility based on the selected type
+        this.updateTryMeButtonsVisibility(selectedType);
+    }
+    
+    /**
+     * Update the visibility of Try Me buttons based on particle type
+     * @param {string} particleType - The currently selected particle type
+     */
+    updateTryMeButtonsVisibility(particleType) {
+        if (!this.tryMeButtons) return;
+        
+        // Only show Try Me buttons for circular particles
+        const isVisible = particleType === 'circular';
+        
+        // Update visibility of all Try Me buttons
+        Object.values(this.tryMeButtons).forEach(button => {
+            button.style('display', isVisible ? 'inline-block' : 'none');
+        });
     }
     
     /**
@@ -277,6 +297,7 @@ class UIController {
         // Try Me Settings 1 button
         const tryMeBtn = createButton('Try Me Settings 1');
         tryMeBtn.parent(group);
+        this.tryMeButtons.tryMe1 = tryMeBtn;
         tryMeBtn.mousePressed(() => {
             this.setToTryMeSettings();
             this.simulation.reset();
@@ -287,12 +308,16 @@ class UIController {
         // Try Me Settings 2 button
         const tryMeBtn2 = createButton('Try Me Settings 2');
         tryMeBtn2.parent(group);
+        this.tryMeButtons.tryMe2 = tryMeBtn2;
         tryMeBtn2.mousePressed(() => {
             this.setToTryMeSettings2();
             this.simulation.reset();
             this.simulation.start();
             this.startPauseBtn.html('Pause');
         });
+        
+        // Set initial visibility of Try Me buttons based on current particle type
+        this.updateTryMeButtonsVisibility(this.config.current.particleType);
     }
     
     /**
@@ -556,11 +581,14 @@ class UIController {
      * @param {p5.Element} container - Parent container
      */
     /**
-     * Reset all settings to their default values
+     * Reset all settings to their default values while preserving the current particle type
      */
     resetToDefaultSettings() {
-        // Update all sliders to their default values
-        this.config.resetToDefaults();
+        // Get current particle type before reset
+        const currentParticleType = this.config.current.particleType;
+        
+        // Reset to defaults while preserving the current particle type
+        this.config.resetToDefaults({ particleType: currentParticleType });
         
         // Update UI sliders
         for (const [key, control] of Object.entries(this.controls)) {
@@ -570,6 +598,20 @@ class UIController {
                     control.valueDisplay.html(this.config.current[key]);
                 }
             }
+        }
+        
+        // Make sure the rod-specific controls are shown/hidden appropriately
+        const rodLengthDiv = document.getElementById('rod-length-control');
+        const ratioDiv = document.getElementById('rod-ratio-control');
+        
+        if (rodLengthDiv && ratioDiv) {
+            // Show/hide rod length slider based on particle type
+            const showRodLength = currentParticleType === 'rod' || currentParticleType === 'mixed';
+            rodLengthDiv.style.display = showRodLength ? 'block' : 'none';
+            
+            // Show/hide rod ratio slider based on particle type
+            const showRodRatio = currentParticleType === 'mixed';
+            ratioDiv.style.display = showRodRatio ? 'block' : 'none';
         }
     }
 
