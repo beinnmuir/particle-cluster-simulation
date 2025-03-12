@@ -451,6 +451,121 @@ The codebase follows object-oriented design principles with clear separation of 
 - **Development Platform**: macOS
 - **Browser Compatibility**: Modern browsers with HTML5 Canvas support
 
-## 10. Conclusion
+### 7.6 Rod Particle Implementation
 
-The Particle Clustering Simulation project demonstrates sophisticated particle dynamics with emergent clustering behaviors. Recent improvements to cluster-wide repulsion and visualization have enhanced the simulation's realism and interpretability. Future work will focus on performance optimization, enhanced cluster dynamics, and advanced visualization techniques.
+1. Implement rotational dynamics for rod-shaped particles
+2. Extend force calculations to handle rod-particle interactions
+3. Develop specialized visualization for rod orientation and rotation
+
+## 8. Recent Implementations
+
+### 8.1 Rod Particle Rotational Dynamics (March 2025)
+
+Implemented rotational physics for rod-shaped particles to enable more complex and realistic interactions:
+
+1. **RodParticle Class**: Extended the base Particle class with rod-specific properties and behaviors in `js/RodParticle.js`:
+   ```javascript
+   class RodParticle extends Particle {
+       constructor(x, y, length, angle, mass) {
+           super(x, y, mass);
+           
+           // Rod-specific properties
+           this.length = length;
+           this.angle = angle || 0;
+           this.pointA = createVector(0, 0); // One endpoint
+           this.pointB = createVector(0, 0); // Other endpoint
+           
+           // Rotational dynamics properties
+           this.angularVelocity = 0;         // Angular velocity in radians per time step
+           this.angularAcceleration = 0;     // Angular acceleration in radians per time step squared
+           this.momentOfInertia = this.calculateMomentOfInertia();
+       }
+   }
+   ```
+
+2. **Moment of Inertia Calculation**: Implemented physics-based moment of inertia calculation for rods:
+   ```javascript
+   calculateMomentOfInertia() {
+       // For a rod rotating about its center: I = (1/12) * m * L²
+       return (1/12) * this.mass * (this.length * this.length);
+   }
+   ```
+
+3. **Torque and Force Application**: Added methods to calculate and apply torque when forces are applied off-center:
+   ```javascript
+   applyForceAtPoint(force, applicationPoint) {
+       // Apply linear force (affects center of mass)
+       this.applyForce(force);
+       
+       // Calculate torque: τ = r × F
+       const r = p5.Vector.sub(applicationPoint, this.position);
+       const torque = r.x * force.y - r.y * force.x;
+       
+       this.applyTorque(torque);
+   }
+   ```
+
+4. **Rotational Dampening**: Implemented consistent dampening for both linear and rotational motion:
+   ```javascript
+   // Apply rotational dampening (similar to linear dampening)
+   if (config.dampeningCoefficient > 0) {
+       // τ_dampening = -c * ω
+       const dampeningTorque = -config.dampeningCoefficient * this.angularVelocity;
+       this.applyTorque(dampeningTorque);
+   }
+   ```
+
+5. **Selective Interaction Point Model**: Implemented a three-point model that selects the closest point for force interactions:
+   ```javascript
+   getInteractionPoint(targetPosition) {
+       const distToA = p5.Vector.dist(targetPosition, this.pointA);
+       const distToCenter = p5.Vector.dist(targetPosition, this.position);
+       const distToB = p5.Vector.dist(targetPosition, this.pointB);
+       
+       if (distToA <= distToCenter && distToA <= distToB) {
+           return this.pointA.copy();
+       } else if (distToB <= distToCenter && distToB <= distToA) {
+           return this.pointB.copy();
+       }
+       return this.position.copy();
+   }
+   ```
+
+6. **Visual Representation**: Enhanced the display method to render rods with proper orientation:
+   ```javascript
+   display() {
+       // Set color based on cluster properties
+       // ...
+       
+       // Draw the rod as a rectangle
+       push();
+       translate(this.position.x, this.position.y);
+       rotate(this.angle);
+       rectMode(CENTER);
+       rect(0, 0, this.length, this.mass * 0.8);
+       pop();
+   }
+   ```
+
+These enhancements enable the simulation to model rod-shaped particles with realistic rotational physics, including torque-induced rotation when forces are applied off-center. The implementation maintains consistency with the existing physics model by using the same dampening coefficient for both linear and rotational motion.
+
+## 9. Code Structure and Design Patterns
+
+The codebase follows object-oriented design principles with clear separation of concerns:
+
+1. **Observer Pattern**: For event handling and UI updates
+2. **Strategy Pattern**: For different force calculation strategies
+3. **Factory Pattern**: For particle creation and configuration
+4. **Command Pattern**: For user interactions and parameter changes
+5. **Inheritance Pattern**: For extending particle behaviors (e.g., RodParticle extends Particle)
+
+## 10. Development Environment
+
+- **Language**: JavaScript (ES6+)
+- **Libraries**: p5.js for rendering and vector math
+- **Development Platform**: macOS
+- **Browser Compatibility**: Modern browsers with HTML5 Canvas support
+
+## 11. Conclusion
+
+The Particle Clustering Simulation project demonstrates sophisticated particle dynamics with emergent clustering behaviors. Recent improvements to cluster-wide repulsion, visualization, and the addition of rod-shaped particles with rotational dynamics have enhanced the simulation's realism and interpretability. Future work will focus on performance optimization, enhanced cluster dynamics, advanced visualization techniques, and further refinement of rod-particle interactions.
