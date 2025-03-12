@@ -197,7 +197,45 @@ To ensure entire clusters expand outward during repulsion:
 2. Implemented fixed pixel sizing for glow
 3. Enhanced color mapping for cluster sizes to scale with particle count
 
-### 5.4 Repulsion Mechanism Improvements (March 2025)
+### 5.4 UI Code Refactoring (March 2025)
+
+The UI code has been refactored using a functional separation approach to improve organization, maintainability, and readability while preserving the ability to open the index.html file directly without a server:
+
+1. **Modular File Structure**: Separated the monolithic `ui.js` into multiple focused files:
+   - `ui-core.js`: Main UIController class definition and initialization
+   - `ui-controls.js`: Control creation methods for simulation, particles, forces, etc.
+   - `ui-morphology.js`: Morphology-specific functions for button styles and visibility
+   - `ui-presets.js`: Preset settings functions (default, Try Me settings)
+   - `ui-stats.js`: Statistics display creation and update methods
+   - `ui-components.js`: Reusable UI component creation methods (sliders, etc.)
+
+2. **Prototype-Based Extension**: Used JavaScript's prototype inheritance to extend the UIController class:
+   ```javascript
+   // Example from ui-controls.js
+   UIController.prototype.createParticleControls = function(container) {
+       // Implementation
+   };
+   ```
+
+3. **Script Loading Order**: Updated index.html to load the UI modules in the correct order:
+   ```html
+   <!-- UI Modules (Replacing ui.js) -->
+   <script src="js/ui-core.js"></script>
+   <script src="js/ui-components.js"></script>
+   <script src="js/ui-controls.js"></script>
+   <script src="js/ui-morphology.js"></script>
+   <script src="js/ui-presets.js"></script>
+   <script src="js/ui-stats.js"></script>
+   ```
+
+4. **Benefits of the Refactoring**:
+   - Improved code organization with clear separation of concerns
+   - Enhanced maintainability with smaller, focused files
+   - Better readability with logical grouping of related functions
+   - Preserved direct file access capability without requiring a server
+   - No build step required, maintaining simplicity
+
+### 5.5 Repulsion Mechanism Improvements (March 2025)
 
 Fixed an issue where repulsive forces were only being applied to two particles in a cluster, instead of propagating to all particles. The key changes were:
 
