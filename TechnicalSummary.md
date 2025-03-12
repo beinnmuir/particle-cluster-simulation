@@ -609,6 +609,48 @@ Enhanced the user interface and rendering system to improve usability and fix is
    // Previous approach (dropdown menu):
    this.typeSelect = createSelect();
    this.typeSelect.option('rod');
+   
+   // New approach (buttons with visual feedback):
+   const circularBtn = createButton('Circular');
+   circularBtn.mousePressed(() => {
+       this.config.current.particleType = 'circular';
+       this.updateMorphologyButtonStyles('circular');
+       this.simulation.reset();
+   });
+   ```
+
+2. **Button State Visualization**: Added visual feedback for selected particle type:
+   ```javascript
+   updateMorphologyButtonStyles(selectedType) {
+       // Reset all buttons to base style
+       Object.keys(this.morphologyButtons).forEach(type => {
+           this.morphologyButtons[type].style('background-color', '#4CAF50');
+       });
+       
+       // Apply selected style to the active button
+       if (this.morphologyButtons[selectedType]) {
+           this.morphologyButtons[selectedType].style('background-color', '#8BC34A');
+       }
+   }
+   ```
+
+3. **Conditional UI Controls**: Implemented context-aware controls that only display when relevant:
+   ```javascript
+   // Only show rod length slider for rod or mixed particles
+   const showRodLength = this.config.current.particleType === 'rod' || 
+                        this.config.current.particleType === 'mixed';
+   rodLengthDiv.style('display', showRodLength ? 'block' : 'none');
+   ```
+
+4. **Start/Pause Button Fix**: Corrected the start/pause button state when changing particle types:
+   ```javascript
+   circularBtn.mousePressed(() => {
+       this.config.current.particleType = 'circular';
+       this.simulation.reset();
+       // Update start/pause button text since simulation is now stopped
+       if (this.startPauseBtn) this.startPauseBtn.html('Start');
+   });
+   ```
    this.typeSelect.option('circular');
    this.typeSelect.option('mixed');
    this.typeSelect.changed(() => {
@@ -689,8 +731,31 @@ Implemented a structured approach to tracking development tasks and technical de
    ```markdown
    # Particle Clustering Simulation - TODO List
 
-   This file tracks important items that need to be checked, investigated, 
-   or implemented in the future.
+   This file tracks important items that need to be checked, investigated, or implemented in the future.
+   ```
+
+2. **Visualization Enhancement Planning**: Added specific visualization improvement tasks to the TODO list:
+   ```markdown
+   ## Visualization Improvements
+
+   1. **Connection Line Placement**
+      - Investigate whether connection lines between rods and particles should be drawn at the centers or at the relevant rod points
+      - Determine the most physically accurate and visually informative way to represent these connections
+
+   2. **Attraction Visualization**
+      - Verify that lines currently show when the threshold distance is reached
+      - Explore adding visualization of when and where attraction starts/occurs
+      - Consider adding visual indicators to show attraction strength
+   ```
+
+3. **Physics Verification Tasks**: Added items to verify and improve the physics simulation:
+   ```markdown
+   ## Physics and Movement
+
+   1. **Particle Mass Balance**
+      - Check relative masses for circles vs rods - circles seem more massive than rods
+      - Consider adjusting mass calculation or force application for different particle types
+   ```
 
    ## Interaction Points and Force Application
 

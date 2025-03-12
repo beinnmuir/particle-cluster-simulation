@@ -20,6 +20,26 @@ This file tracks important items that need to be checked, investigated, or imple
    - Determine if sticky forces are actually needed or if they can be simplified
    - Evaluate if sticky forces should be applied differently for rod-rod interactions
 
+## Physics and Movement
+
+1. **Particle Mass Balance**
+   - Check relative masses for circles vs rods - circles seem more massive than rods, shown by the fact that rods move around much faster and more readily
+   - Consider adjusting mass calculation or force application for different particle types
+   - Ensure consistent behavior across particle types with the same mass value
+
+## Visualization Improvements
+
+1. **Connection Line Placement**
+   - Investigate whether connection lines between rods and particles should be drawn at the centers or at the relevant rod points (e.g., endpoints)
+   - Determine the most physically accurate and visually informative way to represent these connections
+   - Consider implementing multiple connection visualization options that can be toggled
+
+2. **Attraction Visualization**
+   - Verify that lines currently show when the threshold distance is reached
+   - Explore adding visualization of when and where attraction starts/occurs
+   - Consider adding visual indicators (e.g., gradients, fading lines) to show attraction strength
+   - Implement optional visualization of attraction fields around particles
+
 ## Future Enhancements
 
 *Additional items will be added here as needed.*
