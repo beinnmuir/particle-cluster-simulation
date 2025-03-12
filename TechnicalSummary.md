@@ -331,7 +331,9 @@ Enhanced the visualization and user interface to improve user experience and vis
    });
    ```
 
-5. **Preset Configuration**: Implemented a "Try Me" configuration with optimized parameters for interesting clustering behavior
+5. **Preset Configurations**: Implemented "Try Me" configurations with optimized parameters for interesting clustering behavior
+
+   **Try Me Settings 1**: Optimized for large-scale circular cluster formation
    ```javascript
    const tryMeSettings = {
        particleCount: 400,
@@ -342,7 +344,34 @@ Enhanced the visualization and user interface to improve user experience and vis
        attractionCoefficient: 0.03,
        repulsionCoefficient: 1,
        stickyForceCoefficient: 1.21,
-       // Additional parameters...
+       repulsionDelay: 120,
+       delayIncrease: 30,
+       maxRepulsionDelay: 300,
+       minMass: 2,
+       maxMass: 20,
+       massGainRate: 0.003,
+       massLossRate: 0.1
+   };
+   ```
+   
+   **Try Me Settings 2**: Optimized for medium-sized clusters with higher attraction
+   ```javascript
+   const tryMeSettings2 = {
+       particleCount: 250,
+       initialMass: 5,
+       maxSpeed: 5,
+       dampeningCoefficient: 0.03,
+       thresholdDistance: 40,
+       attractionCoefficient: 0.54,
+       repulsionCoefficient: 0.22,
+       stickyForceCoefficient: 1.21,
+       repulsionDelay: 120,
+       delayIncrease: 30,
+       maxRepulsionDelay: 300,
+       minMass: 2,
+       maxMass: 20,
+       massGainRate: 0.001,
+       massLossRate: 0.1
    };
    ```
 
