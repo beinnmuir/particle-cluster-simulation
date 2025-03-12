@@ -2,6 +2,48 @@
 
 This file tracks important items that need to be checked, investigated, or implemented in the future.
 
+## Try Me Mixed Settings
+
+Add the following configuration as Try Me Mixed Settings:
+- Particle Count: 100
+- Initial Mass: 5
+- Max Speed: 5
+- Dampening (Friction): 0.1
+- Particle Type: Mixed
+- Rod Particle Ratio: 0.5
+- Rod Length: 100
+- Threshold Distance: 60
+- Attraction Strength: 1
+- Repulsion Strength: 0.2
+- Sticky Force Strength: 0.5
+- Repulsion Delay: 120
+- Delay Increase on Join: 30
+- Max Repulsion Delay: 300
+- Minimum Mass: 2
+- Maximum Mass: 10
+- Mass Gain Rate: 0.01
+- Mass Loss Rate: 0.1
+
+## Try Me Rod Settings 1
+
+Add the following configuration as Try Me Rod Settings 1:
+- Particle Count: 120
+- Initial Mass: 8
+- Max Speed: 5
+- Dampening (Friction): 0.1
+- Rod Length: 40
+- Threshold Distance: 50
+- Attraction Strength: 1
+- Repulsion Strength: 0.4
+- Sticky Force Strength: 0.2
+- Repulsion Delay: 60
+- Delay Increase on Join: 20
+- Max Repulsion Delay: 300
+- Minimum Mass: 2
+- Maximum Mass: 10
+- Mass Gain Rate: 0.01
+- Mass Loss Rate: 0.1
+
 ## Interaction Points and Force Application
 
 1. **Interaction Point Detection**
@@ -19,6 +61,10 @@ This file tracks important items that need to be checked, investigated, or imple
    - Verify it behaves as expected for both regular particles and rod particles
    - Determine if sticky forces are actually needed or if they can be simplified
    - Evaluate if sticky forces should be applied differently for rod-rod interactions
+
+4. **Delay Increase Parameter**
+   - Check that the delay increase parameter is working correctly
+   - Do we need to add a minimum delay?
 
 ## Physics and Movement
 
