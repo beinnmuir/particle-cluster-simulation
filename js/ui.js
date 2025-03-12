@@ -41,7 +41,7 @@ class UIController {
         group.parent(container);
         
         // Title
-        const title = createElement('h3', 'Particle Type');
+        const title = createElement('h3', 'Morphology Controls');
         title.parent(group);
         
         // Particle type selector
@@ -50,17 +50,50 @@ class UIController {
         
         // We already have a reference to the start/pause button as this.startPauseBtn
         
+        // Store references to buttons for updating selected state
+        this.morphologyButtons = {};
+        
+        // Base style for all buttons
+        const baseButtonStyle = {
+            margin: '5px',
+            padding: '10px',
+            backgroundColor: '#4CAF50',  // Default green
+            color: 'white',
+            border: '1px solid #3e8e41',
+            borderRadius: '4px',
+            cursor: 'pointer'
+        };
+        
+        // Selected state style (lighter green)
+        const selectedButtonStyle = {
+            backgroundColor: '#8BC34A'  // Lighter green for selected state
+        };
+        
         // Create buttons instead of dropdown for more reliable control
         const circularBtn = createButton('Circular');
         circularBtn.parent(group);
-        circularBtn.style('margin', '5px');
+        this.morphologyButtons.circular = circularBtn;
+        
+        // Apply base styles
+        Object.entries(baseButtonStyle).forEach(([prop, val]) => {
+            circularBtn.style(prop, val);
+        });
+        
         circularBtn.mousePressed(() => {
             // Force set the particle type to circular
             console.log('Setting particle type to: circular');
             this.config.current.particleType = 'circular';
             console.log('Config after direct update:', this.config.current.particleType);
+            
             // Hide rod ratio slider for circular particles
             ratioDiv.style('display', 'none');
+            
+            // Hide rod length slider for circular particles
+            rodLengthDiv.style('display', 'none');
+            
+            // Update button styles
+            this.updateMorphologyButtonStyles('circular');
+            
             this.simulation.reset();
             // Update start/pause button text since simulation is now stopped
             if (this.startPauseBtn) this.startPauseBtn.html('Start');
@@ -68,14 +101,28 @@ class UIController {
         
         const rodBtn = createButton('Rod');
         rodBtn.parent(group);
-        rodBtn.style('margin', '5px');
+        this.morphologyButtons.rod = rodBtn;
+        
+        // Apply base styles
+        Object.entries(baseButtonStyle).forEach(([prop, val]) => {
+            rodBtn.style(prop, val);
+        });
+        
         rodBtn.mousePressed(() => {
             // Force set the particle type to rod
             console.log('Setting particle type to: rod');
             this.config.current.particleType = 'rod';
             console.log('Config after direct update:', this.config.current.particleType);
+            
             // Hide rod ratio slider for rod particles
             ratioDiv.style('display', 'none');
+            
+            // Show rod length slider for rod particles
+            rodLengthDiv.style('display', 'block');
+            
+            // Update button styles
+            this.updateMorphologyButtonStyles('rod');
+            
             this.simulation.reset();
             // Update start/pause button text since simulation is now stopped
             if (this.startPauseBtn) this.startPauseBtn.html('Start');
@@ -83,14 +130,28 @@ class UIController {
         
         const mixedBtn = createButton('Mixed');
         mixedBtn.parent(group);
-        mixedBtn.style('margin', '5px');
+        this.morphologyButtons.mixed = mixedBtn;
+        
+        // Apply base styles
+        Object.entries(baseButtonStyle).forEach(([prop, val]) => {
+            mixedBtn.style(prop, val);
+        });
+        
         mixedBtn.mousePressed(() => {
             // Force set the particle type to mixed
             console.log('Setting particle type to: mixed');
             this.config.current.particleType = 'mixed';
             console.log('Config after direct update:', this.config.current.particleType);
+            
             // Show rod ratio slider for mixed particles
             ratioDiv.style('display', 'block');
+            
+            // Show rod length slider for mixed particles
+            rodLengthDiv.style('display', 'block');
+            
+            // Update button styles
+            this.updateMorphologyButtonStyles('mixed');
+            
             this.simulation.reset();
             // Update start/pause button text since simulation is now stopped
             if (this.startPauseBtn) this.startPauseBtn.html('Start');
@@ -115,9 +176,18 @@ class UIController {
             }
         );
         
-        // Rod length slider
+        // Rod length slider in its own div for visibility control
+        const rodLengthDiv = createDiv();
+        rodLengthDiv.parent(group);
+        rodLengthDiv.id('rod-length-control');
+        
+        // Only show rod length slider for rod or mixed particles
+        const showRodLength = this.config.current.particleType === 'rod' || 
+                             this.config.current.particleType === 'mixed';
+        rodLengthDiv.style('display', showRodLength ? 'block' : 'none');
+        
         this.createSlider(
-            group,
+            rodLengthDiv,
             'rodLength',
             'Rod Length',
             10, 100,  
@@ -129,7 +199,36 @@ class UIController {
             }
         );
         
-        // Rod ratio visibility is now handled by the button click events
+        // Set initial button styles based on current particle type
+        this.updateMorphologyButtonStyles(this.config.current.particleType);
+    }
+    
+    /**
+     * Update morphology button styles to show selected state
+     * @param {string} selectedType - The currently selected particle type
+     */
+    updateMorphologyButtonStyles(selectedType) {
+        if (!this.morphologyButtons) return;
+        
+        // Base style for all buttons
+        const baseStyle = {
+            backgroundColor: '#4CAF50'  // Default green
+        };
+        
+        // Selected style
+        const selectedStyle = {
+            backgroundColor: '#8BC34A'  // Lighter green
+        };
+        
+        // Reset all buttons to base style
+        Object.keys(this.morphologyButtons).forEach(type => {
+            this.morphologyButtons[type].style('background-color', baseStyle.backgroundColor);
+        });
+        
+        // Apply selected style to the active button
+        if (this.morphologyButtons[selectedType]) {
+            this.morphologyButtons[selectedType].style('background-color', selectedStyle.backgroundColor);
+        }
     }
     
     /**
