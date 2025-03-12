@@ -78,13 +78,21 @@ Add the following configuration as Try Me Rod Settings 1:
 1. **Connection Line Placement**
    - Investigate whether connection lines between rods and particles should be drawn at the centers or at the relevant rod points (e.g., endpoints)
    - Determine the most physically accurate and visually informative way to represent these connections
-   - Consider implementing multiple connection visualization options that can be toggled
+   - Consider implementing multiple connection visualisation options that can be toggled
 
-2. **Attraction Visualization**
+2. **Attraction Visualisation**
    - Verify that lines currently show when the threshold distance is reached
-   - Explore adding visualization of when and where attraction starts/occurs
+   - Explore adding visualisation of when and where attraction starts/occurs
    - Consider adding visual indicators (e.g., gradients, fading lines) to show attraction strength
-   - Implement optional visualization of attraction fields around particles
+   - Implement optional visualisation of attraction fields around particles
+
+3. **Fix UI jitter in stats panel & in HOD in main window**
+   - Ensure smooth and consistent display of statistics
+   - Fix jitter in Largest Cluster output
+
+4. **Consider adding other visualisation options**
+   - Show/hide visualisation of Force Control sliders
+   - Option to show/hide connection lines
 
 ## Future Enhancements
 
