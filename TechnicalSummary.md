@@ -549,6 +549,163 @@ Implemented rotational physics for rod-shaped particles to enable more complex a
 
 These enhancements enable the simulation to model rod-shaped particles with realistic rotational physics, including torque-induced rotation when forces are applied off-center. The implementation maintains consistency with the existing physics model by using the same dampening coefficient for both linear and rotational motion.
 
+### 8.2 Force System Integration for Rod Particles (March 2025)
+
+Modified the ForceSystem class to properly handle interactions involving rod particles:
+
+1. **Interaction Point Detection**: Enhanced the force calculation to use the appropriate interaction points:
+   ```javascript
+   // Check if either particle is a RodParticle and get the appropriate interaction point
+   const isP1Rod = p1.constructor.name === 'RodParticle';
+   const isP2Rod = p2.constructor.name === 'RodParticle';
+   
+   if (isP1Rod) {
+       p1InteractionPoint = p1.getInteractionPoint(p2.position);
+   }
+   
+   if (isP2Rod) {
+       p2InteractionPoint = p2.getInteractionPoint(p1.position);
+   }
+   ```
+
+2. **Force Application at Interaction Points**: Modified force application to use the `applyForceAtPoint` method for rod particles:
+   ```javascript
+   // For rod particles, apply force at the interaction point to generate torque
+   // For regular particles, apply force at the center
+   if (isP1Rod) {
+       p1.applyForceAtPoint(finalForce, p1InteractionPoint);
+   } else {
+       p1.applyForce(finalForce);
+   }
+   ```
+
+3. **Cluster Repulsion Handling**: Updated the cluster repulsion mechanism to work with rod particles:
+   ```javascript
+   // For regular particles, apply force to center
+   // For rod particles, apply force at the interaction point
+   if (isP1Rod) {
+       const radialForce = p5.Vector.mult(p1Direction, radialForceMagnitude);
+       p1.applyForceAtPoint(radialForce, p1InteractionPoint);
+   } else {
+       p1.applyForce(p5.Vector.mult(p1Direction, radialForceMagnitude));
+   }
+   ```
+
+These modifications ensure that forces between particles are calculated and applied in a physically accurate manner, taking into account the rod geometry and generating appropriate torque when forces are applied off-center.
+
+### 8.3 Project Management Improvements (March 2025)
+
+Implemented a structured approach to tracking development tasks and technical debt:
+
+1. **TODO File**: Created a dedicated `TODO.md` file to track items that need further investigation or improvement:
+   ```markdown
+
+### 8.4 UI and Rendering Improvements (March 2025)
+
+Enhanced the user interface and rendering system to improve usability and fix issues with circular particle rendering:
+
+1. **UI Control Improvements**: Replaced dropdown menus with buttons for more reliable particle type selection:
+   ```javascript
+   // Previous approach (dropdown menu):
+   this.typeSelect = createSelect();
+   this.typeSelect.option('rod');
+   this.typeSelect.option('circular');
+   this.typeSelect.option('mixed');
+   this.typeSelect.changed(() => {
+       this.config.current.particleType = this.typeSelect.value();
+       this.simulation.reset();
+   });
+   
+   // New approach (buttons):
+   const rodButton = createButton('Rod');
+   rodButton.mousePressed(() => {
+       this.config.current.particleType = 'rod';
+       this.simulation.reset();
+   });
+   
+   const circularButton = createButton('Circular');
+   circularButton.mousePressed(() => {
+       this.config.current.particleType = 'circular';
+       this.simulation.reset();
+   });
+   
+   const mixedButton = createButton('Mixed');
+   mixedButton.mousePressed(() => {
+       this.config.current.particleType = 'mixed';
+       this.simulation.reset();
+   });
+   ```
+
+2. **Particle Type Detection**: Enhanced the particle type detection in the renderer to use both `instanceof` and property checking for more reliable identification:
+   ```javascript
+   // Previous approach (property checking only):
+   if (particle.hasOwnProperty('angle') && particle.hasOwnProperty('length') && 
+       particle.hasOwnProperty('pointA') && particle.hasOwnProperty('pointB')) {
+       this.renderRodParticle(particle, mainHue, ringHue);
+   } else {
+       this.renderCircularParticle(particle, mainHue, ringHue);
+   }
+   
+   // New approach (instanceof and property checking):
+   if (particle instanceof RodParticle || 
+       (particle.hasOwnProperty('angle') && particle.hasOwnProperty('length') && 
+        particle.hasOwnProperty('pointA') && particle.hasOwnProperty('pointB'))) {
+       this.renderRodParticle(particle, mainHue, ringHue);
+   } else {
+       this.renderCircularParticle(particle, mainHue, ringHue);
+   }
+   ```
+
+3. **Debug Logging**: Added extensive debug logging throughout the simulation and rendering processes to track particle creation and rendering:
+   ```javascript
+   // In ParticleFactory.createRandomParticle:
+   console.log(`Creating ${type} particle at (${x}, ${y}) with mass ${mass}`);
+   
+   // In Renderer.renderParticle:
+   console.log('Detected ROD particle, rendering with renderRodParticle');
+   console.log('Detected CIRCULAR particle, rendering with renderCircularParticle');
+   
+   // In SimulationManager.initialize:
+   console.log(`Initializing simulation with particle type: ${options.type}`);
+   console.log(`Created ${this.particles.length} particles`);
+   ```
+
+4. **Default Configuration**: Changed the default particle type in the configuration from 'rod' to 'circular' to ensure circular particles appear by default:
+   ```javascript
+   // Previous default configuration:
+   particleType: 'rod',
+   
+   // New default configuration:
+   particleType: 'circular',
+   ```
+
+These improvements ensure that circular particles are correctly created and rendered when selected, providing a more reliable and consistent user experience. The combination of UI enhancements, improved type detection, and comprehensive logging makes the system more robust and easier to debug.
+
+### 8.5 Project Management Improvements (March 2025)
+
+Implemented a structured approach to tracking development tasks and technical debt:
+
+1. **TODO File**: Created a dedicated `TODO.md` file to track items that need further investigation or improvement:
+   ```markdown
+   # Particle Clustering Simulation - TODO List
+
+   This file tracks important items that need to be checked, investigated, 
+   or implemented in the future.
+
+   ## Interaction Points and Force Application
+
+   1. **Interaction Point Detection**
+      - Explore how interaction point detection is working for rod particles
+      - Verify consistency across different scenarios (rod-particle, rod-rod)
+   ```
+
+2. **Key Areas for Investigation**:
+   - Interaction point detection consistency across different scenarios
+   - Cluster interaction point calculation for rod particles
+   - Sticky force implementation and necessity
+
+This structured approach to tracking technical tasks helps ensure that important implementation details are properly verified and optimized as the project evolves.
+
 ## 9. Code Structure and Design Patterns
 
 The codebase follows object-oriented design principles with clear separation of concerns:

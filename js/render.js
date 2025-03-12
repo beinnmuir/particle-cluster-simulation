@@ -21,8 +21,15 @@ class Renderer {
         // Clear background
         background(240);
         
+        // Debug: Log the number of particles being rendered
+        console.log('Rendering', this.simulation.particles.length, 'particles');
+        
         // Draw particles first
         for (let particle of this.simulation.particles) {
+            // Debug: Log each particle type
+            const isRod = particle.hasOwnProperty('angle') && particle.hasOwnProperty('length');
+            console.log('Rendering particle:', isRod ? 'ROD' : 'CIRCULAR', 'at position', particle.position.x, particle.position.y);
+            
             this.renderParticle(particle);
         }
         
@@ -73,9 +80,15 @@ class Renderer {
             }
         }
 
-        if (particle instanceof RodParticle) {
+        // Check if this is a rod particle using instanceof for more reliable type checking
+        // Also fall back to property checking as a secondary method
+        if (particle instanceof RodParticle || 
+            (particle.hasOwnProperty('angle') && particle.hasOwnProperty('length') && 
+             particle.hasOwnProperty('pointA') && particle.hasOwnProperty('pointB'))) {
+            console.log('Detected ROD particle, rendering with renderRodParticle');
             this.renderRodParticle(particle, mainHue, ringHue);
         } else {
+            console.log('Detected CIRCULAR particle, rendering with renderCircularParticle');
             this.renderCircularParticle(particle, mainHue, ringHue);
         }
         
@@ -90,6 +103,9 @@ class Renderer {
      * @param {number} ringHue - Ring color hue (for clustered particles)
      */
     renderCircularParticle(particle, mainHue, ringHue) {
+        // Debug: Log that we're rendering a circular particle
+        console.log('renderCircularParticle called for particle at', particle.position.x, particle.position.y);
+        
         // Calculate size multiplier based on mass
         let sizeMultiplier = 2;
         if (particle.inCluster && particle.clusterSize > 1) {
@@ -99,6 +115,7 @@ class Renderer {
 
         // Calculate base particle size
         const baseSize = particle.mass * sizeMultiplier;
+        console.log('Circular particle size:', baseSize, 'based on mass:', particle.mass);
 
         // Draw outer glow if particle is in a cluster
         if (particle.inCluster && particle.clusterSize > 1) {
@@ -112,6 +129,9 @@ class Renderer {
         noStroke();
         fill(mainHue, 60, 70);
         circle(particle.position.x, particle.position.y, baseSize);
+        
+        // Debug: Verify the circle was drawn
+        console.log('Drew circular particle at', particle.position.x, particle.position.y, 'with size', baseSize);
     }
 
     /**

@@ -18,6 +18,9 @@ class ParticleFactory {
      * @returns {Particle} A new particle instance
      */
     createRandomParticle(type = 'circular') {
+        // Debug: Log the type of particle being created
+        console.log('Creating random particle of type:', type);
+        
         const x = random(this.config.current.canvasWidth);
         const y = random(this.config.current.canvasHeight);
         const mass = this.config.current.initialMass;
@@ -27,8 +30,11 @@ class ParticleFactory {
             const length = this.config.current.rodLength || 20; // Default rod length if not specified
             const angle = random(TWO_PI); // Random initial orientation
             particle = new RodParticle(x, y, length, angle, mass);
+            console.log('Created ROD particle');
         } else {
+            // Explicitly create a circular particle
             particle = new Particle(x, y, mass);
+            console.log('Created CIRCULAR particle');
         }
         
         particle.id = this.particleCount++; // Assign unique ID
@@ -74,16 +80,26 @@ class ParticleFactory {
         const particles = [];
         const type = options.type || 'circular';
         const rodRatio = options.rodRatio || 0;
+        
+        console.log('Creating particle batch with type:', type, 'and rodRatio:', rodRatio);
 
         for (let i = 0; i < count; i++) {
             if (type === 'mixed') {
                 // Create a mix of circular and rod particles based on rodRatio
                 const particleType = Math.random() < rodRatio ? 'rod' : 'circular';
+                console.log(`Mixed batch - creating particle ${i+1}/${count} of type:`, particleType);
                 particles.push(this.createRandomParticle(particleType));
             } else {
+                console.log(`Creating particle ${i+1}/${count} of type:`, type);
                 particles.push(this.createRandomParticle(type));
             }
         }
+        
+        // Log summary of created particles
+        const rodCount = particles.filter(p => p instanceof RodParticle).length;
+        const circularCount = particles.length - rodCount;
+        console.log(`Batch creation complete: ${particles.length} total particles (${rodCount} rods, ${circularCount} circular)`);
+        
         return particles;
     }
 

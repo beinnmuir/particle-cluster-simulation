@@ -12,8 +12,8 @@ class Config {
             minMass: 2,
             maxMass: 20,
             
-            // Rod particle settings
-            particleType: 'rod',  // 'circular', 'rod', or 'mixed'
+            // Particle type settings
+            particleType: 'circular',  // 'circular', 'rod', or 'mixed'
             rodRatio: 0.5,       // For mixed particle types
             rodLength: 40,        // Length of rod particles
             

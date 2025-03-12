@@ -126,7 +126,10 @@ class RodParticle extends Particle {
             // Create a dampening torque proportional to angular velocity but in opposite direction
             // τ_dampening = -c * ω
             // where c is the dampening coefficient and ω is the angular velocity
-            const dampeningTorque = -config.dampeningCoefficient * this.angularVelocity;
+            // Note: We need to scale the dampening effect for rotation appropriately
+            // Using a higher coefficient for rotational dampening to make it more noticeable
+            const rotationalDampeningFactor = 10; // Scaling factor to make rotational dampening more pronounced
+            const dampeningTorque = -config.dampeningCoefficient * rotationalDampeningFactor * this.angularVelocity;
             this.applyTorque(dampeningTorque);
         }
         

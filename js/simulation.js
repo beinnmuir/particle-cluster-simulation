@@ -38,15 +38,25 @@ class SimulationManager {
      * Initialize the simulation with particles
      */
     initialize() {
+        // DEBUG: Log the current particle type to verify configuration
+        console.log('Initializing simulation with particle type:', this.config.current.particleType);
+        
         this.particles = [];
         this.forceSystem = new ForceSystem(); // Reset force system
         this.particleFactory.reset(); // Reset particle ID counter
         
+        // Force refresh the config value to ensure it's current
+        const currentType = this.config.current.particleType;
+        console.log('Double-checking particle type before creating particles:', currentType);
+        
         // Get particle creation options from config
         const options = {
-            type: this.config.current.particleType || 'circular',
+            type: currentType, // Use the directly retrieved value
             rodRatio: this.config.current.rodRatio || 0
         };
+        
+        // Log the options being passed to the particle factory
+        console.log('Particle creation options:', options);
         
         // Create particles using the factory with specified options
         this.particles = this.particleFactory.createParticleBatch(
@@ -140,15 +150,22 @@ class SimulationManager {
      * @param {Renderer} renderer - The renderer instance to use
      */
     render(renderer) {
+        console.log('SimulationManager.render called with', this.particles.length, 'particles');
+        
         if (renderer) {
             // Use the provided renderer
+            console.log('Using external renderer');
             renderer.render();
         } else {
             // Fallback to basic rendering if no renderer is provided
+            console.log('Using fallback rendering (particle.display)');
             background(240);
             
             // Draw each particle
             for (let particle of this.particles) {
+                // Debug: Log the type of particle being rendered
+                const isRod = particle instanceof RodParticle;
+                console.log('Rendering particle using display():', isRod ? 'ROD' : 'CIRCULAR');
                 particle.display();
             }
         }

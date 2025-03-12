@@ -40,20 +40,50 @@ class UIController {
         group.parent(container);
         
         // Title
-        const title = createElement('h3', 'Rod Particle Controls');
+        const title = createElement('h3', 'Particle Type');
         title.parent(group);
         
         // Particle type selector
         const typeLabel = createElement('label', 'Particle Type:');
         typeLabel.parent(group);
-        const typeSelect = createSelect();
-        typeSelect.parent(group);
-        typeSelect.option('Circular', 'circular');
-        typeSelect.option('Rod', 'rod');
-        typeSelect.option('Mixed', 'mixed');
-        typeSelect.selected(this.config.current.particleType);
-        typeSelect.changed(() => {
-            this.config.updateSetting('particleType', typeSelect.value());
+        
+        // Create buttons instead of dropdown for more reliable control
+        const circularBtn = createButton('Circular');
+        circularBtn.parent(group);
+        circularBtn.style('margin', '5px');
+        circularBtn.mousePressed(() => {
+            // Force set the particle type to circular
+            console.log('Setting particle type to: circular');
+            this.config.current.particleType = 'circular';
+            console.log('Config after direct update:', this.config.current.particleType);
+            // Hide rod ratio slider for circular particles
+            ratioDiv.style('display', 'none');
+            this.simulation.reset();
+        });
+        
+        const rodBtn = createButton('Rod');
+        rodBtn.parent(group);
+        rodBtn.style('margin', '5px');
+        rodBtn.mousePressed(() => {
+            // Force set the particle type to rod
+            console.log('Setting particle type to: rod');
+            this.config.current.particleType = 'rod';
+            console.log('Config after direct update:', this.config.current.particleType);
+            // Hide rod ratio slider for rod particles
+            ratioDiv.style('display', 'none');
+            this.simulation.reset();
+        });
+        
+        const mixedBtn = createButton('Mixed');
+        mixedBtn.parent(group);
+        mixedBtn.style('margin', '5px');
+        mixedBtn.mousePressed(() => {
+            // Force set the particle type to mixed
+            console.log('Setting particle type to: mixed');
+            this.config.current.particleType = 'mixed';
+            console.log('Config after direct update:', this.config.current.particleType);
+            // Show rod ratio slider for mixed particles
+            ratioDiv.style('display', 'block');
             this.simulation.reset();
         });
         
@@ -90,10 +120,7 @@ class UIController {
             }
         );
         
-        // Update rod ratio visibility when type changes
-        typeSelect.changed(() => {
-            ratioDiv.style('display', typeSelect.value() === 'mixed' ? 'block' : 'none');
-        });
+        // Rod ratio visibility is now handled by the button click events
     }
     
     /**
