@@ -119,7 +119,7 @@ class Renderer {
 
         // Draw outer glow if particle is in a cluster
         if (particle.inCluster && particle.clusterSize > 1) {
-            const glowPixels = 4; // Fixed pixel size for glow
+            const glowPixels = 3; // Fixed pixel size for glow
             noStroke();
             fill(ringHue, 60, 70, 30);
             circle(particle.position.x, particle.position.y, baseSize + (glowPixels * 2));
@@ -146,7 +146,7 @@ class Renderer {
         
         // Draw glow effect if particle is in a cluster
         if (particle.inCluster && particle.clusterSize > 1) {
-            const glowPixels = 6;
+            const glowPixels = 3;
             noStroke();
             fill(ringHue, 60, 70, 30);
             
