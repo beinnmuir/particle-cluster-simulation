@@ -1,18 +1,18 @@
 # Particle Clustering Simulation
 
-An interactive simulation where particles attract each other to form clusters, with forces that reverse to repulsion when clusters reach a threshold size. Particles gain mass when clustered and lose mass when isolated, with their clustering history reflected in their color. The simulation supports both circular and rod-shaped particles with realistic physics and interactions.
+A simulation where particles attract each other to form clusters, with forces that reverse to repulsion when particles get too close. Particles gain mass when clustered and lose mass when isolated (indicated by their size), with their clustering history reflected in their fill color. The connection colour and outer glow indicates the cluster size. The simulation supports both circular and rod-shaped particles with (hopefully) realistic physics and interactions.
 
 ## Features
 
 - Dynamic particle behavior with attraction and repulsion forces
-- Support for both circular and rod-shaped particles with realistic physics
+- Support for both circular and rod-shaped particles with (hopefully) realistic physics
 - Rotational dynamics for rod particles with torque and angular momentum
 - Mass evolution based on clustering
 - Visual representation of mass (size) and clustering history (color)
 - Interactive UI for parameter tuning with multiple control categories
 - Modular architecture for easy extension
 - Visualization of connections between particles in the same cluster
-- Multiple preset configurations with "Try Me" buttons for different particle types
+- Multiple preset configurations with "Try Me" buttons for different configurations
 - Statistics panel showing real-time simulation metrics
 
 ## Technology
@@ -61,7 +61,7 @@ Built with p5.js for rendering and interaction.
 - Performance optimizations with spatial partitioning for O(n log n) force calculations
 - Enhanced cluster visualization options with toggleable connection lines
 - Additional visualization options for force fields and attraction zones
-- Improved UI with reduced jitter in statistics display
+- Improved UI with reduced jitter in statistics displays
 - Attribute-based interactions (affinity)
 - Smooth transition functions for force behavior
 - Potential 3D simulation capabilities

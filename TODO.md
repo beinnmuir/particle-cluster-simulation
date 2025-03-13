@@ -4,7 +4,7 @@ This file tracks important items that need to be checked, investigated, or imple
 
 ## Try Me Mixed Settings
 
-Add the following configuration as Try Me Mixed Settings:
+Add the following configuration as Try Me Mixed Settings 1:
 - Particle Count: 100
 - Initial Mass: 5
 - Max Speed: 5
@@ -73,6 +73,10 @@ Add the following configuration as Try Me Rod Settings 1:
    - Consider adjusting mass calculation or force application for different particle types
    - Ensure consistent behavior across particle types with the same mass value
 
+2. **Check Rod Rotation Behaviour**
+   - Verify that rod rotation is working correctly
+   - Does damping slider max need to be increased?
+
 ## Visualization Improvements
 
 1. **Connection Line Placement**
@@ -93,6 +97,10 @@ Add the following configuration as Try Me Rod Settings 1:
 4. **Consider adding other visualisation options**
    - Show/hide visualisation of Force Control sliders
    - Option to show/hide connection lines
+
+5. **Glow size is too large for small objects**
+   - Adjust glow size based on object size (e.g., 1-2 pixels for small objects)
+   - Consider using a more dynamic glow size that scales with object size
 
 ## Future Enhancements
 
