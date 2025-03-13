@@ -52,7 +52,7 @@ Add the following configuration as Try Me Rod Settings 1:
    - Consider edge cases where interaction points might jump between endpoints and center
 
 2. **Cluster Interaction Points**
-   - Investigate how interaction points are calculated for cluster repulsion
+   - Investigate how interaction points are calculated for cluster attraction and repulsion (is it only COM at the moment?)
    - Ensure cluster centers properly account for rod particles' orientations
    - Verify that radial forces from cluster centers are applied correctly to rod endpoints
 

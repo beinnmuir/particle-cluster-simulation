@@ -1,6 +1,6 @@
 # Particle Clustering Simulation
 
-A simulation where particles attract each other to form clusters, with forces that reverse to repulsion when particles get too close. Particles gain mass when clustered and lose mass when isolated (indicated by their size), with their clustering history reflected in their fill color. The connection colour and outer glow indicates the cluster size. The simulation supports both circular and rod-shaped particles with (hopefully) realistic physics and interactions.
+A simulation where particles attract each other to form clusters, with forces that reverse to repulsion when particles get too close. Particles gain mass when clustered and lose mass when isolated (indicated by their size), with their clustering history shown by their fill color. The connection colour and outer glow indicates cluster size. The simulation supports both circular and rod-shaped particles with (hopefully) realistic physics and interactions.
 
 ## Features
 
